@@ -1,7 +1,7 @@
 package com.mobdeve.s12.noblefranca.josenoel.tetris_loca;
 
 import androidx.appcompat.app.AppCompatActivity;
-
+import android.graphics.Canvas;
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
@@ -13,5 +13,8 @@ public class MainActivity extends AppCompatActivity {
 
         Board board = new Board(this);
         this.setContentView(board);
+
+        //board.drawBoard(new Canvas());
+
     }
 }
