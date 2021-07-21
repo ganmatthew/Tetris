@@ -1,4 +1,4 @@
-package com.mobdeve.s12.noblefranca.josenoel.tetris_loca;
+package com.mobdeve.s12.group9.tetris;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.mobdeve.s12.noblefranca.josenoel.tetris_loca", appContext.getPackageName());
+        assertEquals("com.mobdeve.s12.tetris_loca", appContext.getPackageName());
     }
 }

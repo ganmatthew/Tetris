@@ -1,7 +1,7 @@
-package com.mobdeve.s12.noblefranca.josenoel.tetris_loca;
+package com.mobdeve.s12.group9.tetris;
 
 import androidx.appcompat.app.AppCompatActivity;
-import android.graphics.Canvas;
+
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {

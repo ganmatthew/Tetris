@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.mobdeve.s12.noblefranca.josenoel.tetris_loca"
+        applicationId "com.mobdeve.s12.group9.tetris"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
