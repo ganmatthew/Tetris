@@ -1,2 +1,2 @@
-rootProject.name = "Tetris"
+rootProject.name = "Tetris_Loca"
 include ':app'
