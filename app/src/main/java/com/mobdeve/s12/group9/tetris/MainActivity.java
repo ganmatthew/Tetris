@@ -17,14 +17,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        b = new Board(this);
-        g = new Game(b);
+        //b = new Board(this);
+        g = new Game(this);
 
-        ConstraintLayout cl_board_layout = findViewById(R.id.cl_board_layout);
-        cl_board_layout.addView(b);
-
-        g.run();
-
+        //ConstraintLayout cl_board_layout = findViewById(R.id.cl_board_layout);
+        //cl_board_layout.addView(g);
         //Board board = new Board(this);
         //cl.addView(board);
         //board.drawBoard(new Canvas());

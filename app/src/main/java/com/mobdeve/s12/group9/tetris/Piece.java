@@ -46,6 +46,15 @@ public class Piece {
             {{0,0}, {-1,0}, {-1,-1}, {0,2}, {-1,2}} //POS 3
     };
 
+    public static final int [][] OFFSET_DATA_O_PIECE = {
+            {0,0}, //POS 0
+            {0,-1},  //POS 1
+            {-1,-1},  //POS 2
+            {-1,0} //POS 3
+    };
+
+
+
     public static final int DIRECTION_UP = 0, DIRECTION_RIGHT = 1, DIRECTION_DOWN = 2, DIRECTION_LEFT = 3, DIRECTION_RANDOM = 4;
 
     public static final int DIRECTION_COUNT = 4;
