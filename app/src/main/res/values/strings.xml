@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Tetris</string>
+    <string name="app_name_caps">TETRIS</string>
+    <string name="menu_play">Play</string>
+    <string name="menu_credits">By Matthew Gan and Jose Noblefranca</string>
+    <string name="settings_music">Toggle music</string>
+    <string name="settings_sounds">Toggle sounds</string>
+    <string name="settings_sensitivity">Set touch sensitivity</string>
+    <string name="settings_exit">Exit Settings</string>
 </resources>
