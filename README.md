@@ -21,3 +21,6 @@ https://thenounproject.com/icon/3874054/
 
 Leaderboard icon by Joda Sahfa Ramadhan from the Noun Project
 https://thenounproject.com/icon/1807206/
+
+Tetris Theme (Electro Swing Remix) by The Musical Ghost and Akosmo
+https://soundcloud.com/the-musical-ghost/ghost-kozmos-tetris-theme-electro-swing-remix
