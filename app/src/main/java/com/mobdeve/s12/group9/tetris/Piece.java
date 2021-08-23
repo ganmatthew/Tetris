@@ -59,10 +59,6 @@ public class Piece {
 
     public static final int DIRECTION_COUNT = 4;
 
-    public int[][] dataX;
 
-    public int[][] dataY;
-
-    public Block[] block;
 
 }
