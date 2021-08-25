@@ -3,30 +3,46 @@ package com.mobdeve.s12.group9.tetris;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
 
+import android.content.ContentResolver;
 import android.graphics.Point;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.Window;
-import android.view.WindowManager;
+
+import java.io.IOException;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
+    // Debugging tags
+    private static final String GESTURE_TAG = "Gestures";
+    private static final String MUSIC_TAG = "Music";
 
-    private static final String DEBUG_TAG = "Gestures";
     private GestureDetectorCompat mDetector;
 
     protected Board b;
     protected Game g;
 
+    MediaPlayer mPlayer = new MediaPlayer();
+
+    // References to the music tracks in res
+    String musicStart = String.valueOf(R.raw.tetris_remix_start);
+    String musicLoop = String.valueOf(R.raw.tetris_remix_loop);
+
+    /***
+     * Activity start
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Hide title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 
         // Make app fullscreen
         //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -34,6 +50,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         setContentView(R.layout.activity_main);
 
+        // Plays the Tetris theme
+        musicStart();
+
+        // Initialize game and board classes
         //b = new Board(this);
         g = new Game(this);
 
@@ -49,9 +69,77 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         mDetector.setOnDoubleTapListener(this);
     }
 
-    /*
-    Listen for different touch events
+    /***
+     * Music control
      */
+
+    private void setMusicTrack(String trackId, boolean isLooping) {
+        // Create path to music track in raw folder
+        Uri mediaPath = Uri.parse("android.resource://" + this.getPackageName() + "/" + trackId);
+        try {
+            mPlayer.setDataSource(getApplicationContext(), mediaPath);
+            mPlayer.setLooping(isLooping);
+            mPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void nextMusicTrack(String nextTrackId, boolean nextIsLooping) {
+        mPlayer.stop();
+        mPlayer.reset();
+        setMusicTrack(nextTrackId, nextIsLooping);
+        mPlayer.start();
+    }
+
+    // Plays the start track of the music and transitions into the loop track
+    public void musicStart() {
+        // Set the loop track to play indefinitely after the start track ends
+        mPlayer.setOnCompletionListener(mp -> {
+            nextMusicTrack(musicLoop, true);
+            Log.d(MUSIC_TAG, "\nPlaying loop of Tetris theme\n");
+        });
+
+        // Plays the start track
+        setMusicTrack(musicStart, false);
+        mPlayer.start();
+        Log.d(MUSIC_TAG, "\nPlaying start of Tetris theme\n");
+    }
+
+    // Pauses any music track in the MediaPlayer
+    public void musicPause() {
+        if (mPlayer.isPlaying()) {
+            mPlayer.pause();
+            Log.d(MUSIC_TAG, "\nPaused the Tetris theme\n");
+        }
+    }
+
+    // Resumes any track in the MediaPlayer
+    public void musicResume() {
+        if (!mPlayer.isPlaying()) {
+            // Continue where it left off
+            int trackPos = mPlayer.getCurrentPosition();
+            mPlayer.seekTo(trackPos);
+            mPlayer.start();
+            Log.d(MUSIC_TAG, "\nContinued the Tetris theme\n");
+        }
+    }
+
+    // Stops any music track, plays the end track, and resets the MediaPlayer
+    public void musicStop() {
+        if (mPlayer != null) {
+            mPlayer.stop();
+            mPlayer.release();
+            mPlayer = null;
+            Log.d(MUSIC_TAG, "\nStopped the Tetris theme\n");
+
+        }
+    }
+
+    /***
+     * Touch Events
+     */
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (this.mDetector.onTouchEvent(event)) {
@@ -70,20 +158,19 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         Point displaySize = new Point();
         defaultDisplay.getSize(displaySize);
 
-        float medianLine = displaySize.x / 2;
+        float medianLine = (float) displaySize.x / 2;
 
         // Listen for double tap actions on either side
-        switch (e.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                float fingerPosition = e.getX();
-                if(fingerPosition < medianLine) {
-                    Log.d(DEBUG_TAG, "\nDouble tap on LEFT SIDE\n");
-                } else {
-                    Log.d(DEBUG_TAG, "\nDouble tap on RIGHT SIDE\n");
-                }
-                return true;
-            default:
-                return false;
+        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+            float fingerPosition = e.getX();
+            if(fingerPosition < medianLine) {
+                Log.d(GESTURE_TAG, "\nDouble tap on LEFT SIDE\n");
+            } else {
+                Log.d(GESTURE_TAG, "\nDouble tap on RIGHT SIDE\n");
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -110,25 +197,54 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
 
         if (angle > -45 && angle <= 45) {
-            Log.d(DEBUG_TAG, "\nFling from RIGHT to LEFT\n");
+            Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
             return true;
         }
 
         if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
-            Log.d(DEBUG_TAG, "\nFling from LEFT to RIGHT\n");
+            Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
             return true;
         }
 
         if (angle < -45 && angle >= -135) {
-            Log.d(DEBUG_TAG, "\nFling from UP to DOWN\n");
+            Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
             return true;
         }
 
         if (angle > 45 && angle <= 135) {
-            Log.d(DEBUG_TAG, "\nFling from DOWN to UP\n");
+            Log.d(GESTURE_TAG, "\nFling from DOWN to UP\n");
             return true;
         }
 
         return false;
     }
+
+    /***
+     * Life cycle
+     */
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        musicPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        musicPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        musicStop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        musicResume();
+    }
+
 }
