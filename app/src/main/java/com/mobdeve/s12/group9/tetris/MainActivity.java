@@ -1,6 +1,7 @@
 package com.mobdeve.s12.group9.tetris;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
 
 import android.content.ContentResolver;
@@ -24,7 +25,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
     private GestureDetectorCompat mDetector;
 
-    protected Board b;
     protected Game g;
 
     MediaPlayer mPlayer = new MediaPlayer();
@@ -51,17 +51,13 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         setContentView(R.layout.activity_main);
 
         // Plays the Tetris theme
-        musicStart();
+        //musicStart();
 
-        // Initialize game and board classes
-        //b = new Board(this);
+        // Initialize game class
         g = new Game(this);
 
-        //ConstraintLayout cl_board_layout = findViewById(R.id.cl_board_layout);
-        //cl_board_layout.addView(g);
-        //Board board = new Board(this);
-        //cl.addView(board);
-        //board.drawBoard(new Canvas());
+        ConstraintLayout cl_board_layout = findViewById(R.id.cl_board_layout);
+        cl_board_layout.addView(g);
 
         // Set up gesture detection
         mDetector = new GestureDetectorCompat(this,this);

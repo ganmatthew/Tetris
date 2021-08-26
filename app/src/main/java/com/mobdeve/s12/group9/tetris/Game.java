@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
@@ -14,12 +15,18 @@ import androidx.core.content.ContextCompat;
 
 public class Game extends View {
 
+    //private static final int BLOCK_SIZE = 10;
+
+    private static final int BOARD_HEIGHT = 20;
+    private static final int BOARD_WIDTH = 10;
+
     private Bitmap block_skin;
-    private Board board;
+    private int[][] data;
 
     public Game(Context context) {
         super(context);
-        initGame();
+        block_skin = getBitmap(getContext(), R.drawable.ic_sprite_modified_5);
+        data = new int[BOARD_WIDTH][BOARD_HEIGHT];
     }
 
     /*Required code to get Bitmap from Vector, pls don't move :D*/
@@ -43,11 +50,29 @@ public class Game extends View {
         }
     }
 
-    public void initGame() {
-        //get the sprites for the game:
-        block_skin = getBitmap(getContext(), R.drawable.ic_sprite_modified_5);
-        board = new Board();
+    protected void onDraw(Canvas canvas) {
 
 
+
+
+        /*
+        for (int i = 0; i < BOARD_WIDTH; i++){
+            for (int j = 0; j < BOARD_HEIGHT; j++){
+                canvas.drawBitmap(block_skin, new Rect(0,0,84,84),
+                        new Rect((i * 80) - 6,(j * 80) - 5,80 + (i * 80), 80 + (j * 80)), null);
+            }
+        }
+        */
+
+
+
+
+        ConstraintLayout cl_board_layout = findViewById(R.id.cl_board_layout);
+        int j = cl_board_layout.getHeight();
+
+        canvas.drawBitmap(block_skin, new Rect(0,0,84,84), new Rect(0,j - 80,80, j), null);
+
+        //super.onDraw(canvas);
     }
+
 }
