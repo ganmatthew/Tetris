@@ -10,6 +10,7 @@ import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -34,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private Button btnPlay;
     private ImageButton btnSettings;
     private ImageButton btnScores;
+
+    private DisplayMetrics displayMetrics;
 
     private View gameView;
 
@@ -63,13 +66,17 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         setContentView(R.layout.acitivity_main_menu);
         this.btnPlay = findViewById(R.id.btn_menu_play);
         this.btnSettings = findViewById(R.id.btn_menu_settings);
-        this.btnScores = findViewById(R.id.btn_menu_settings);
+        this.btnScores = findViewById(R.id.btn_menu_leaderboard);
 
         // Plays the Tetris theme
         musicStart();
 
         // Initialize game activity
         bindToPlayButton();
+
+        // Initialize DisplayMetrics
+        displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
         // Set up gesture detection
         mDetector = new GestureDetectorCompat(this,this);
@@ -85,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             public void onClick(View v) {
                 setContentView(R.layout.activity_board);
                 ConstraintLayout clBoardLayout = findViewById(R.id.cl_board_layout);
-                gameView = new GameView(MainActivity.this);
+                gameView = new GameView(MainActivity.this, displayMetrics);
                 clBoardLayout.addView(gameView);
             }
         });
@@ -176,11 +183,15 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onDoubleTap(MotionEvent e) {
         // Get the median x-coordinate of the display
+
+        /*
         Display defaultDisplay = getWindowManager().getDefaultDisplay();
         Point displaySize = new Point();
         defaultDisplay.getSize(displaySize);
-
         float medianLine = (float) displaySize.x / 2;
+         */
+
+        float medianLine = (float) displayMetrics.widthPixels / 2;
 
         // Listen for double tap actions on either side
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
