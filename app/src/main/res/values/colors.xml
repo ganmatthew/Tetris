@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="title_gray">#636363</color>
-    <color name="play_green">#5BFF49</color>
+    <color name="play_green">#00A83B</color>
     <color name="button_black">#151620</color>
     <color name="button_slider_tick_active">#1B2159</color>
     <color name="button_slider_tick_inactive">#3C3C3C</color>

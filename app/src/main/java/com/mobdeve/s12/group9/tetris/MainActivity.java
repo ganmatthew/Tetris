@@ -1,10 +1,11 @@
 package com.mobdeve.s12.group9.tetris;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
 
-import android.content.ContentResolver;
+import android.content.Intent;
 import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -13,7 +14,10 @@ import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageButton;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -25,7 +29,13 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
     private GestureDetectorCompat mDetector;
 
-    protected Game g;
+    protected GameView GameView;
+
+    private Button btnPlay;
+    private ImageButton btnSettings;
+    private ImageButton btnScores;
+
+    private View gameView;
 
     MediaPlayer mPlayer = new MediaPlayer();
 
@@ -36,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     /***
      * Activity start
      */
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,21 +59,36 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
         //WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        setContentView(R.layout.activity_main);
+        // Set main menu view
+        setContentView(R.layout.acitivity_main_menu);
+        this.btnPlay = findViewById(R.id.btn_menu_play);
+        this.btnSettings = findViewById(R.id.btn_menu_settings);
+        this.btnScores = findViewById(R.id.btn_menu_settings);
 
         // Plays the Tetris theme
-        //musicStart();
+        musicStart();
 
-        // Initialize game class
-        g = new Game(this);
-
-        ConstraintLayout cl_board_layout = findViewById(R.id.cl_board_layout);
-        cl_board_layout.addView(g);
+        // Initialize game activity
+        bindToPlayButton();
 
         // Set up gesture detection
         mDetector = new GestureDetectorCompat(this,this);
         // Set up listener for double tap events
         mDetector.setOnDoubleTapListener(this);
+
+    }
+
+    // Binds the play button to launch the game proper
+    private void bindToPlayButton() {
+        btnPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setContentView(R.layout.activity_board);
+                ConstraintLayout clBoardLayout = findViewById(R.id.cl_board_layout);
+                gameView = new GameView(MainActivity.this);
+                clBoardLayout.addView(gameView);
+            }
+        });
     }
 
     /***
