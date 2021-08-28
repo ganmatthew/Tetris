@@ -4,12 +4,15 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -17,6 +20,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 
@@ -28,26 +32,33 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private static final String GESTURE_TAG = "Gestures";
     private static final String MUSIC_TAG = "Music";
 
+    // Game components
+    private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
+    private MediaPlayer mPlayer = new MediaPlayer();
 
-    protected GameView GameView;
-
+    // Main menu view components
     private Button btnPlay;
     private ImageButton btnSettings;
     private ImageButton btnScores;
 
-    private DisplayMetrics displayMetrics;
-
+    // Board view components
     private View gameView;
 
-    MediaPlayer mPlayer = new MediaPlayer();
+    // Settings view components
+    private SharedPreferences sp;
+    private SharedPreferences.Editor spEditor;
 
-    // References to the music tracks in res
+    private double touchSensitivity = 0.5;
+    private boolean musicEnabled = true;
+    private boolean soundsEnabled = true;
+
+    // References to the music tracks
     String musicStart = String.valueOf(R.raw.tetris_remix_start);
     String musicLoop = String.valueOf(R.raw.tetris_remix_loop);
 
     /***
-     * Activity start
+     * Activity listeners
      */
 
     @Override
@@ -59,8 +70,11 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         Objects.requireNonNull(getSupportActionBar()).hide();
 
         // Make app fullscreen
-        //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        //WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        // Initialize PreferenceManager
+        this.sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // Set main menu view
         setContentView(R.layout.acitivity_main_menu);
@@ -69,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         this.btnScores = findViewById(R.id.btn_menu_leaderboard);
 
         // Plays the Tetris theme
-        //musicStart();
+        musicStart();
 
         // Initialize game activity
         bindToPlayButton();
@@ -80,12 +94,13 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
         // Set up gesture detection
         mDetector = new GestureDetectorCompat(this,this);
+
         // Set up listener for double tap events
         mDetector.setOnDoubleTapListener(this);
 
     }
 
-    // Binds the play button to launch the game proper
+    // Binds the play button to launch the board view
     private void bindToPlayButton() {
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,6 +111,32 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 clBoardLayout.addView(gameView);
             }
         });
+    }
+
+    // Binds the settings button to launch the settings view
+    private void bindToSettingsButton() {
+        btnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+    }
+
+    // Override the back button to return to the main menu when board is in focus
+    @Override
+    public void onBackPressed() {
+        if (MainActivity.this.getWindow().getDecorView().getRootView() == gameView.getRootView()) {
+            ConstraintLayout clBoardLayout = findViewById(R.id.cl_board_layout);
+            clBoardLayout.removeView(gameView);
+
+            finish();
+            overridePendingTransition( 0, 0); // hide the android transition animation
+            startActivity(getIntent());
+            overridePendingTransition( 0, 0);
+        }
+
+        Log.d("VIEW TAG", String.format("%s", MainActivity.this.getWindow().getDecorView().getRootView()));
     }
 
     /***

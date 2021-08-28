@@ -13,6 +13,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 public class GameView extends View {
@@ -27,7 +28,7 @@ public class GameView extends View {
     private static final Rect BLOCK_CYAN =          new Rect(338,0,424,84);
     private static final Rect BLOCK_BLUE =          new Rect(425,0,509,84);
     private static final Rect BLOCK_PINK =          new Rect(510,0,594,84);
-    private static final Rect BLOCK_EMPTY =         new Rect(766,0,850,84);
+    //private static final Rect BLOCK_EMPTY =         new Rect(766,0,850,84);
 
     private static int BOARD_SCALE = 80;
     private static int BOARD_OFFSET_VERTICAL = 250;
@@ -36,11 +37,15 @@ public class GameView extends View {
     private static final int BOARD_HEIGHT = 20;
     private static final int BOARD_WIDTH = 10;
 
+    private ConstraintLayout clBoardLayout;
     private Bitmap block_skin;
     private int[][] data;
 
     public GameView(Context context, DisplayMetrics displayMetrics) {
         super(context);
+
+        // Get the ConstraintLayout to draw on later
+        this.clBoardLayout = findViewById(R.id.cl_board_layout);
 
         // Get display metrics from MainActivity
         /*
@@ -85,9 +90,11 @@ public class GameView extends View {
         }
     }
 
-    protected void onDraw(Canvas canvas) {
+    public ConstraintLayout getClBoardLayout() {
+        return this.clBoardLayout;
+    }
 
-        /*
+    protected void onDraw(Canvas canvas) {
 
         //render I piece:
         data[1][1] = 5;
@@ -132,31 +139,21 @@ public class GameView extends View {
         data[7][9] = 7;
         data[6][8] = 7;
 
-
-        */
-
+        /*
         data[1][1] = 1;
         data[1][2] = 2;
         data[1][3] = 3;
-
-
-
-
-
-
-
+         */
 
         for (int i = 0; i < BOARD_WIDTH; i++) {
             for (int j = 0; j < BOARD_HEIGHT; j++) {
-                Rect boundbox = new Rect();
-                boundbox.left =     (BOARD_OFFSET_HORIZONTAL + (i * BOARD_SCALE));
-                boundbox.top =      BOARD_OFFSET_VERTICAL + (j * BOARD_SCALE);
-                boundbox.right =    BOARD_OFFSET_HORIZONTAL + BOARD_SCALE + (i * BOARD_SCALE);
-                boundbox.bottom =   BOARD_OFFSET_VERTICAL + BOARD_SCALE + (j * BOARD_SCALE);
+                Rect boundBox = new Rect();
+                boundBox.left =     (BOARD_OFFSET_HORIZONTAL + (i * BOARD_SCALE));
+                boundBox.top =      BOARD_OFFSET_VERTICAL + (j * BOARD_SCALE);
+                boundBox.right =    BOARD_OFFSET_HORIZONTAL + BOARD_SCALE + (i * BOARD_SCALE);
+                boundBox.bottom =   BOARD_OFFSET_VERTICAL + BOARD_SCALE + (j * BOARD_SCALE);
 
                 //post processing
-
-
 
                 //boundbox.right = 82 + (i * 80);
                 //boundbox.bottom = BOARD_OFFSET_VERTICAL + (81 + (j * 80));
@@ -164,31 +161,30 @@ public class GameView extends View {
                 //Rect colorData = (data[i][j] > 0 && data[i][j] < 7) ? blockColor[data[i][j]] : blockColor[9];
                 //canvas.drawBitmap(block_skin, colorData, boundbox, null);
 
-
                 switch (data[i][j]) {
                     case 0:
-                        //canvas.drawBitmap(block_skin, BLOCK_EMPTY, boundbox, null);
+                        //canvas.drawBitmap(block_skin, BLOCK_EMPTY, boundBox, null);
                         break;
                     case 1:
-                        canvas.drawBitmap(block_skin, BLOCK_RED, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_RED, boundBox, null);
                         break;
                     case 2:
-                        canvas.drawBitmap(block_skin, BLOCK_ORANGE, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_ORANGE, boundBox, null);
                         break;
                     case 3:
-                        canvas.drawBitmap(block_skin, BLOCK_YELLOW, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_YELLOW, boundBox, null);
                         break;
                     case 4:
-                        canvas.drawBitmap(block_skin, BLOCK_GREEN, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_GREEN, boundBox, null);
                         break;
                     case 5:
-                        canvas.drawBitmap(block_skin, BLOCK_CYAN, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_CYAN, boundBox, null);
                         break;
                     case 6:
-                        canvas.drawBitmap(block_skin, BLOCK_BLUE, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_BLUE, boundBox, null);
                         break;
                     case 7:
-                        canvas.drawBitmap(block_skin, BLOCK_PINK, boundbox, null);
+                        canvas.drawBitmap(block_skin, BLOCK_PINK, boundBox, null);
                         break;
                 }
 
