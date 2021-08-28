@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         this.btnScores = findViewById(R.id.btn_menu_leaderboard);
 
         // Plays the Tetris theme
-        musicStart();
+        //musicStart();
 
         // Initialize game activity
         bindToPlayButton();

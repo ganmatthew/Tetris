@@ -20,13 +20,19 @@ public class GameView extends View {
     //private static final int BLOCK_SIZE = 10;
 
     //rectangle colors...
-    private Rect BLOCK_RED, BLOCK_ORANGE, BLOCK_YELLOW, BLOCK_GREEN, BLOCK_CYAN, BLOCK_BLUE, BLOCK_PINK, BLOCK_EMPTY;
-    private Rect[] blockColor = {
-        BLOCK_RED, BLOCK_ORANGE, BLOCK_YELLOW, BLOCK_GREEN, BLOCK_CYAN, BLOCK_BLUE, BLOCK_PINK, null, null, BLOCK_EMPTY
-    };
+    private static final Rect BLOCK_RED =           new Rect(0,0,84,84);
+    private static final Rect BLOCK_ORANGE =        new Rect(85,0,169,84);
+    private static final Rect BLOCK_YELLOW =        new Rect(170,0,255,84);
+    private static final Rect BLOCK_GREEN =         new Rect(255,0,339,84);
+    private static final Rect BLOCK_CYAN =          new Rect(338,0,424,84);
+    private static final Rect BLOCK_BLUE =          new Rect(425,0,509,84);
+    private static final Rect BLOCK_PINK =          new Rect(510,0,594,84);
+    private static final Rect BLOCK_EMPTY =         new Rect(766,0,850,84);
 
     private static int BOARD_SCALE = 80;
     private static int BOARD_OFFSET_VERTICAL = 250;
+    private static int BOARD_OFFSET_HORIZONTAL = 50;
+
     private static final int BOARD_HEIGHT = 20;
     private static final int BOARD_WIDTH = 10;
 
@@ -37,6 +43,7 @@ public class GameView extends View {
         super(context);
 
         // Get display metrics from MainActivity
+        /*
         ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int density = 440;
 
@@ -48,26 +55,12 @@ public class GameView extends View {
 
         Log.d("SCALING TAG", String.format("DPI: %d ppi\tOffset: %d", density, BOARD_OFFSET_VERTICAL));
 
-        // Calculates the scale based on the device's approximate ppi density
-        int base = (density * 21) / 110;
 
-        for (int i = 0; i < 10; i++) {
-            int j = i + 1;
-            blockColor[i] = new Rect(base * i, 0, (base * j) + (i < 3 ? 0 : j), base);
-        }
-
-        /*
-        BLOCK_RED = new Rect(0,0, base, base);  // x0+0, x0, x1+0, x1
-        BLOCK_ORANGE = new Rect(84,0,168,84);   // x1+0, x0, x2+0, x1
-        BLOCK_YELLOW = new Rect(168,0,252,84);  // x2+0, x0, x3+0, x1
-        BLOCK_GREEN = new Rect(255,0,340,84);   // x3+3, x0, x4+4, x1
-        BLOCK_CYAN = new Rect(340,0,425,84);    // x4+4, x0, x5+5, x1
-        BLOCK_BLUE = new Rect(425,0,510,84);    // x5+5, x0, x6+6, x1
-        BLOCK_PINK = new Rect(510,0,595,84);    // x6+6, x0, x7+7, x1
-        BLOCK_EMPTY = new Rect(765,0,850,84);   // x9+9, x0, x10+10, x1
         */
+        // Calculates the scale based on the device's approximate ppi density
+        //int base = (density * 21) / 110;
 
-        block_skin = getBitmap(context, R.drawable.ic_sprite_modified_5);
+        block_skin = getBitmap(context, R.drawable.ic_sprite_modified_7);
         data = new int[BOARD_WIDTH][BOARD_HEIGHT];
     }
 
@@ -93,6 +86,9 @@ public class GameView extends View {
     }
 
     protected void onDraw(Canvas canvas) {
+
+        /*
+
         //render I piece:
         data[1][1] = 5;
         data[2][1] = 5;
@@ -137,24 +133,41 @@ public class GameView extends View {
         data[6][8] = 7;
 
 
+        */
+
+        data[1][1] = 1;
+        data[1][2] = 2;
+        data[1][3] = 3;
+
+
+
+
+
+
+
+
         for (int i = 0; i < BOARD_WIDTH; i++) {
             for (int j = 0; j < BOARD_HEIGHT; j++) {
                 Rect boundbox = new Rect();
-                boundbox.left = i * BOARD_SCALE;
-                boundbox.top = BOARD_OFFSET_VERTICAL + (j * BOARD_SCALE);
-                boundbox.right = BOARD_SCALE + (i * BOARD_SCALE);
-                boundbox.bottom = BOARD_OFFSET_VERTICAL + BOARD_SCALE + (j * BOARD_SCALE);
+                boundbox.left =     (BOARD_OFFSET_HORIZONTAL + (i * BOARD_SCALE));
+                boundbox.top =      BOARD_OFFSET_VERTICAL + (j * BOARD_SCALE);
+                boundbox.right =    BOARD_OFFSET_HORIZONTAL + BOARD_SCALE + (i * BOARD_SCALE);
+                boundbox.bottom =   BOARD_OFFSET_VERTICAL + BOARD_SCALE + (j * BOARD_SCALE);
+
+                //post processing
+
+
 
                 //boundbox.right = 82 + (i * 80);
                 //boundbox.bottom = BOARD_OFFSET_VERTICAL + (81 + (j * 80));
 
-                Rect colorData = (data[i][j] > 0 && data[i][j] < 7) ? blockColor[data[i][j]] : blockColor[9];
-                canvas.drawBitmap(block_skin, colorData, boundbox, null);
+                //Rect colorData = (data[i][j] > 0 && data[i][j] < 7) ? blockColor[data[i][j]] : blockColor[9];
+                //canvas.drawBitmap(block_skin, colorData, boundbox, null);
 
-                /*
+
                 switch (data[i][j]) {
                     case 0:
-                        canvas.drawBitmap(block_skin, BLOCK_EMPTY, boundbox, null);
+                        //canvas.drawBitmap(block_skin, BLOCK_EMPTY, boundbox, null);
                         break;
                     case 1:
                         canvas.drawBitmap(block_skin, BLOCK_RED, boundbox, null);
@@ -178,7 +191,7 @@ public class GameView extends View {
                         canvas.drawBitmap(block_skin, BLOCK_PINK, boundbox, null);
                         break;
                 }
-                 */
+
             }
         }
     }
