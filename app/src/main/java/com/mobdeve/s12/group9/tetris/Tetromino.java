@@ -1,6 +1,6 @@
 package com.mobdeve.s12.group9.tetris;
 
-enum TetrominoShape {
+enum Shape {
     I_SHAPE,
     J_SHAPE,
     L_SHAPE,
