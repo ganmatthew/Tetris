@@ -1,23 +1,14 @@
 package com.mobdeve.s12.group9.tetris;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.view.GestureDetectorCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -27,14 +18,11 @@ import android.widget.ImageButton;
 import java.io.IOException;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
+public class MainActivity extends AppCompatActivity {
     // Debugging tags
-    private static final String GESTURE_TAG = "Gestures";
     private static final String MUSIC_TAG = "Music";
 
     // Game components
-    private DisplayMetrics displayMetrics;
-    private GestureDetectorCompat mDetector;
     private MediaPlayer mPlayer = new MediaPlayer();
 
     // Main menu view components
@@ -77,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         this.sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // Set main menu view
-        setContentView(R.layout.acitivity_main_menu);
+        setContentView(R.layout.activity_main);
         this.btnPlay = findViewById(R.id.btn_menu_play);
         this.btnSettings = findViewById(R.id.btn_menu_settings);
         this.btnScores = findViewById(R.id.btn_menu_leaderboard);
@@ -85,58 +73,23 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
         // Plays the Tetris theme
         musicStart();
 
-        // Initialize game activity
+        // Listen to menu buttons
         bindToPlayButton();
-
-        // Initialize DisplayMetrics
-        displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-
-        // Set up gesture detection
-        mDetector = new GestureDetectorCompat(this,this);
-
-        // Set up listener for double tap events
-        mDetector.setOnDoubleTapListener(this);
-
     }
 
-    // Binds the play button to launch the board view
+    // Binds the play button to launch the board activity
     private void bindToPlayButton() {
-        btnPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setContentView(R.layout.activity_board);
-                ConstraintLayout clBoardLayout = findViewById(R.id.cl_board_layout);
-                gameView = new GameView(MainActivity.this, displayMetrics);
-                clBoardLayout.addView(gameView);
-            }
+        btnPlay.setOnClickListener(v -> {
+            Intent i = new Intent(MainActivity.this, Game.class);
+            startActivity(i);
         });
     }
 
     // Binds the settings button to launch the settings view
     private void bindToSettingsButton() {
-        btnSettings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnSettings.setOnClickListener(v -> {
 
-            }
         });
-    }
-
-    // Override the back button to return to the main menu when board is in focus
-    @Override
-    public void onBackPressed() {
-        if (MainActivity.this.getWindow().getDecorView().getRootView() == gameView.getRootView()) {
-            ConstraintLayout clBoardLayout = findViewById(R.id.cl_board_layout);
-            clBoardLayout.removeView(gameView);
-
-            finish();
-            overridePendingTransition( 0, 0); // hide the android transition animation
-            startActivity(getIntent());
-            overridePendingTransition( 0, 0);
-        }
-
-        Log.d("VIEW TAG", String.format("%s", MainActivity.this.getWindow().getDecorView().getRootView()));
     }
 
     /***
@@ -204,93 +157,6 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             Log.d(MUSIC_TAG, "\nStopped the Tetris theme\n");
 
         }
-    }
-
-    /***
-     * Touch Events
-     */
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (this.mDetector.onTouchEvent(event)) {
-            return true;
-        }
-        return super.onTouchEvent(event);
-    }
-
-    @Override
-    public boolean onSingleTapConfirmed(MotionEvent e) { return false; }
-
-    @Override
-    public boolean onDoubleTap(MotionEvent e) {
-        // Get the median x-coordinate of the display
-
-        /*
-        Display defaultDisplay = getWindowManager().getDefaultDisplay();
-        Point displaySize = new Point();
-        defaultDisplay.getSize(displaySize);
-        float medianLine = (float) displaySize.x / 2;
-         */
-
-        float medianLine = (float) displayMetrics.widthPixels / 2;
-
-        // Listen for double tap actions on either side
-        if (e.getAction() == MotionEvent.ACTION_DOWN) {
-            float fingerPosition = e.getX();
-            if(fingerPosition < medianLine) {
-                Log.d(GESTURE_TAG, "\nDouble tap on LEFT SIDE\n");
-            } else {
-                Log.d(GESTURE_TAG, "\nDouble tap on RIGHT SIDE\n");
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean onDoubleTapEvent(MotionEvent e) { return false; }
-
-    @Override
-    public boolean onDown(MotionEvent e) { return false; }
-
-    @Override
-    public void onShowPress(MotionEvent e) {}
-
-    @Override
-    public boolean onSingleTapUp(MotionEvent e) { return false; }
-
-    @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) { return false; }
-
-    @Override
-    public void onLongPress(MotionEvent e) {}
-
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
-
-        if (angle > -45 && angle <= 45) {
-            Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
-            return true;
-        }
-
-        if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
-            Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
-            return true;
-        }
-
-        if (angle < -45 && angle >= -135) {
-            Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
-            return true;
-        }
-
-        if (angle > 45 && angle <= 135) {
-            Log.d(GESTURE_TAG, "\nFling from DOWN to UP\n");
-            return true;
-        }
-
-        return false;
     }
 
     /***

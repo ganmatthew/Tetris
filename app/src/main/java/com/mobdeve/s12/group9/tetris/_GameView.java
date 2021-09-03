@@ -16,7 +16,7 @@ import android.view.View;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
-public class GameView extends View {
+public class _GameView extends View {
 
     //private static final int BLOCK_SIZE = 10;
 
@@ -41,7 +41,7 @@ public class GameView extends View {
     private Bitmap block_skin;
     private int[][] data;
 
-    public GameView(Context context, DisplayMetrics displayMetrics) {
+    public _GameView(Context context, DisplayMetrics displayMetrics) {
         super(context);
 
         // Get the ConstraintLayout to draw on later
