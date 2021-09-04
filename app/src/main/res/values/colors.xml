@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="title_gray">#636363</color>
-    <color name="play_green">#00A83B</color>
-    <color name="button_black">#151620</color>
-    <color name="button_slider_tick_active">#1B2159</color>
-    <color name="button_slider_tick_inactive">#3C3C3C</color>
-    <color name="button_slider_track_active">#454545</color>
-    <color name="button_slider_track_inactive">#D6D6D6</color>
+    <color name="play_green">#00A35C</color>
+    <color name="button_black">#20222C</color>
+    <color name="button_slider_thumb">#ECECEC</color>
+    <color name="button_slider_tick">#3D4155</color>
+    <color name="button_slider_track">#2D303F</color>
+    <color name="settings_outside_color">#B23D4155</color> <!--Note the first two digits are alpha (transparency) in hex-->
+    <color name="settings_background_color">#3D4155</color>
+    <color name="menu_background_color">#F0F9F9</color>
     <color name="board_color">#212435</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
