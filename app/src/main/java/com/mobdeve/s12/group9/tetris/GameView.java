@@ -38,7 +38,7 @@ public class GameView extends View {
 
 
      */
-
+    public static final int EMPTY_PIECE = 0;
     public static final int I_PIECE = 1;
     public static final int O_PIECE = 2;
     public static final int T_PIECE = 3;
@@ -139,7 +139,7 @@ public class GameView extends View {
                         block_painter.setColor(Color.BLUE);
                         break;
                     case L_PIECE:
-                        block_painter.setColor(Color.rgb(255, 165, 0));
+                        block_painter.setColor(Color.rgb(255, 165, 0)); //java is racist to orange
                         break;
                     case S_PIECE:
                         block_painter.setColor(Color.GREEN);

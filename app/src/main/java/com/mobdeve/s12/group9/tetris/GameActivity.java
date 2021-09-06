@@ -31,12 +31,16 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public static final int NUM_WIDTH = 10;
     public static final int NUM_BLOCKSIZE = 80;
     public static final int GAME_OFFSET = 100;
-    public static final int DELAY = 2000;
+    public static final int DELAY = 1000;
 
     public static final int GAMESTATE_NEW = 0;
     public static final int GAMESTATE_SPAWN = 1;
     public static final int GAMESTATE_FALL = 2;
     public static final int GAMESTATE_END = 2;
+
+    public static final int DIRECTION_LEFT = 0;
+    public static final int DIRECTION_DOWN = 1;
+    public static final int DIRECTION_RIGHT = 2;
 
     private static int game_state;
     private static int[][] block_data;
@@ -48,6 +52,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private Handler handler;
     private Runnable loop;
     private Stack <Integer> piece_bag;
+    private Tetromino tetromino;
     
 
     @Override
@@ -132,11 +137,13 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         if (angle > -45 && angle <= 45) {
             Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
+            MoveTetromino(DIRECTION_RIGHT);
             return true;
         }
 
         if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
             Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
+            MoveTetromino(DIRECTION_LEFT);
             return true;
         }
 
@@ -195,11 +202,22 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         loop = new Runnable() {
             @Override
             public void run() {
-                PopulatePieceBag();
-                game_state = 1;
 
-                if (game_state == 1){
+                if (game_state == 0){
+                    PopulatePieceBag();
+                    game_state = 1;
+                }
+                else if (game_state == 1){
+                    boolean check = SpawnTetromino();
+                    if (check){
+                        game_state = 2;
+                    }
+                    else {
 
+                    }
+                }
+                else if (game_state == 2){
+                    MoveTetromino(DIRECTION_DOWN);
                 }
 
                 //DebugTest();
@@ -210,6 +228,110 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             }
         };
         loop.run();
+    }
+
+    public void UpdateBlock_Data(int PieceValue){
+        for (int i = 0; i < 4; i++){
+            block_data[tetromino.getDataY()[tetromino.getPos()][i]][tetromino.getDataX()[tetromino.getPos()][i]] = PieceValue;
+        }
+    }
+
+    public boolean LegalBlockData(){
+
+        //check if the current position of the tetromino is conflicting with the current block data.
+
+        for (int i = 0; i < 4; i++){
+            if (block_data[tetromino.getDataY()[tetromino.getPos()][i]][tetromino.getDataX()[tetromino.getPos()][i]] != 0)
+                return false;
+        }
+
+        //check if the current x values of the tetromino is greater than 9, or less than 0.
+        for (int i = 0; i < 4; i++){
+            if (tetromino.getDataX()[tetromino.getPos()][i] > 9 || 0 > tetromino.getDataX()[tetromino.getPos()][i])
+                return false;
+        }
+
+        //check if the current y value is greater than 19.
+        for (int i = 0; i < 4; i++){
+            if (tetromino.getDataY()[tetromino.getPos()][i] > 19)
+                return false;
+        }
+
+        return true;
+    }
+
+    public void MoveTetromino(int Direction){
+        switch (Direction){
+            case DIRECTION_DOWN:
+                //check for collision here first
+                CollisionMovementCheck(Direction);
+                //then move piece down
+                UpdateBlock_Data(GameView.EMPTY_PIECE);
+                //offset by 1
+                tetromino.addY_Offset(1);
+                break;
+
+            case DIRECTION_LEFT:
+                //check collision
+                CollisionMovementCheck(Direction);
+                //
+                UpdateBlock_Data(GameView.EMPTY_PIECE);
+                tetromino.addX_Offset(-1);
+                break;
+            case DIRECTION_RIGHT:
+                //check collision
+                CollisionMovementCheck(Direction);
+                //
+                UpdateBlock_Data(GameView.EMPTY_PIECE);
+                tetromino.addX_Offset(1);
+                break;
+        }
+
+        UpdateBlock_Data(tetromino.getShape());
+    }
+
+    public boolean SpawnTetromino() {
+        //int PieceId = piece_bag.pop();
+        tetromino = new Tetromino(GameView.J_PIECE);
+
+        //spawn the piece to spawn area, note its always +3? (no confirm on this)
+
+        tetromino.addX_Offset(3);
+
+        if (LegalBlockData()){
+            UpdateBlock_Data(tetromino.getShape());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean CollisionMovementCheck(int direction){
+        int[][] temp;
+
+        if (direction == DIRECTION_LEFT || direction == DIRECTION_RIGHT){
+            temp = tetromino.getDataX();
+
+            tetromino.addX_Offset(direction);
+
+            if (LegalBlockData()){
+                return true;
+            }
+
+            tetromino.addX_Offset(direction * -1);
+
+        }else{
+            temp = tetromino.getDataY();
+
+            tetromino.addY_Offset(direction);
+
+            if (LegalBlockData()){
+                return true;
+            }
+
+            tetromino.addY_Offset(direction * -1);
+        }
+
+        return false;
     }
 
 }
