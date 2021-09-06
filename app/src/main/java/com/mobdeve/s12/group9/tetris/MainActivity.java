@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     // Binds the play button to launch the board activity
     private void bindToPlayButton() {
         btnPlay.setOnClickListener(v -> {
-            Intent i = new Intent(MainActivity.this, Game.class);
+            Intent i = new Intent(MainActivity.this, GameActivity.class);
             startActivity(i);
             /*
             if (btnPlay.getVisibility() == View.VISIBLE) {

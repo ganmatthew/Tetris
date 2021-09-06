@@ -1,27 +1,48 @@
 package com.mobdeve.s12.group9.tetris;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.GestureDetectorCompat;
+
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GestureDetectorCompat;
-
-public class Game extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener {
-    // Debugging tags
+public class GameActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
     private static final String GESTURE_TAG = "Gestures";
+
+    public static final int NUM_HEIGHT = 20;
+    public static final int NUM_WIDTH = 10;
+    public static final int NUM_BLOCKSIZE = 90;
+    public static final int GAME_OFFSET = 100;
+
+    public static final int DELAY = 5000;
+
+    private static int game_state;
+    private static int[][] block_data;
+
 
     // Game components
     private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
+    private GameView game_view;
+    private Handler handler;
+    private Runnable loop;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_board);
 
         // Initialize DisplayMetrics to get display data
         displayMetrics = new DisplayMetrics();
@@ -32,11 +53,17 @@ public class Game extends AppCompatActivity implements GestureDetector.OnGesture
 
         // Set up listener for double tap events
         mDetector.setOnDoubleTapListener(this);
-    }
 
-    /***
-     * Touch Events
-     */
+        block_data = new int[NUM_HEIGHT][NUM_WIDTH];
+
+        game_state = 0;
+
+        game_view = new GameView(this);
+        game_view.setBackgroundColor(Color.BLACK);
+        setContentView(game_view);
+
+        StartGame();
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -112,6 +139,35 @@ public class Game extends AppCompatActivity implements GestureDetector.OnGesture
         }
 
         return false;
+    }
+
+    public static int[][] get_gamedata(){
+        return block_data;
+    }
+
+    public void StartGame(){
+
+
+        handler = new Handler(Looper.getMainLooper());
+        loop = new Runnable() {
+            @Override
+            public void run() {
+
+                /*
+                if (block_data[1][1] == 1){
+                    block_data[1][1] = 2;
+                }else
+                    block_data[1][1] = 1;
+
+                game_view.invalidate();
+                Toast.makeText(GameActivity.this, "delay testing", Toast.LENGTH_SHORT).show();
+                handler.postDelayed(this, DELAY);
+                */
+
+
+            }
+        };
+        loop.run();
     }
 
 }
