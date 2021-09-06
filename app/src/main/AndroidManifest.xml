@@ -11,7 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tetris">
         <activity
-            android:name=".MainActivity">
+            android:name=".LeaderboardActivity"
+            android:exported="true" />
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -19,6 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".Game" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

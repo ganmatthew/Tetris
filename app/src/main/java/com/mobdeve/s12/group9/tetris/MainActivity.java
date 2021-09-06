@@ -13,13 +13,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 
 import java.io.IOException;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     // Debugging tags
@@ -29,10 +27,13 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer mPlayer = new MediaPlayer();
 
     // Main menu view components
-    private ConstraintLayout clSettings;
+    private ConstraintLayout clOverlay;
+    private LinearLayout llModes;
     private Button btnPlay;
     private ImageButton btnSettings;
-    private ImageButton btnScores;
+    private ImageButton btnLeader;
+    private View settingsView;
+    private View leaderView;
 
     // Board view components
     private View gameView;
@@ -62,18 +63,21 @@ public class MainActivity extends AppCompatActivity {
 
         // Set main menu view
         setContentView(R.layout.activity_main);
+
         this.btnPlay = findViewById(R.id.btn_menu_play);
         this.btnSettings = findViewById(R.id.btn_menu_settings);
-        this.btnScores = findViewById(R.id.btn_menu_leaderboard);
+        this.btnLeader = findViewById(R.id.btn_menu_leaderboard);
 
-        this.clSettings = findViewById(R.id.cl_menu_settings_container);
+        this.llModes = findViewById(R.id.ll_menu_modes);
+        this.clOverlay = findViewById(R.id.cl_menu_overlay_container);
 
         // Plays the Tetris theme
         musicStart();
 
         // Listen to menu buttons
         bindToPlayButton();
-        bindToSettingsButton();
+        settingsView = bindViewToButton(R.layout.activity_settings, R.id.btn_settings_exit, btnSettings);
+        leaderView = bindViewToButton(R.layout.activity_leaderboard, R.id.btn_leaderboard_exit, btnLeader);
     }
 
     // Binds the play button to launch the board activity
@@ -81,20 +85,26 @@ public class MainActivity extends AppCompatActivity {
         btnPlay.setOnClickListener(v -> {
             Intent i = new Intent(MainActivity.this, Game.class);
             startActivity(i);
+            /*
+            if (btnPlay.getVisibility() == View.VISIBLE) {
+                llModes.setVisibility(View.VISIBLE);
+                btnPlay.setVisibility(View.GONE);
+            }
+            */
         });
     }
 
-    // Binds the settings button to launch the settings view
-    private void bindToSettingsButton() {
+    // Binds a given view to a button
+    private View bindViewToButton(int viewRes, int closeButtonRes, ImageButton openButton) {
         LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-        View view = inflater.inflate(R.layout.activity_settings, null);
+        View view = inflater.inflate(viewRes, null);
 
-        btnSettings.setOnClickListener(v -> {
+        openButton.setOnClickListener(v -> {
             if (view.getParent() == null)
-                clSettings.addView(view);
+                clOverlay.addView(view);
         });
 
-        Button closeButton = view.findViewById(R.id.btn_settings_exit);
+        ImageButton closeButton = view.findViewById(closeButtonRes);
         view.setLayoutParams(new ConstraintLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT)
@@ -102,8 +112,10 @@ public class MainActivity extends AppCompatActivity {
 
         closeButton.setOnClickListener(v -> {
             if (view.getParent() != null)
-                clSettings.removeView(view);
+                clOverlay.removeView(view);
         });
+
+        return view;
     }
 
     @Override
@@ -117,6 +129,17 @@ public class MainActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             );
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (this.settingsView.getParent() != null) {
+            clOverlay.removeView(this.settingsView);
+        }
+
+        if (this.leaderView.getParent() != null) {
+            clOverlay.removeView(this.leaderView);
         }
     }
 

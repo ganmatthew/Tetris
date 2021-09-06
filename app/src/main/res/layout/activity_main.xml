@@ -7,10 +7,10 @@
     android:background="@color/menu_background_color">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/cl_menu_settings_container"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:elevation="2dp"
+        android:id="@+id/cl_menu_overlay_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -41,15 +41,93 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <LinearLayout
+            android:id="@+id/ll_menu_modes"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/ll_menu_misc"
+            app:layout_constraintEnd_toEndOf="@+id/tv_menu_title"
+            app:layout_constraintStart_toStartOf="@+id/tv_menu_title"
+            app:layout_constraintTop_toBottomOf="@+id/tv_menu_title">
+
+            <Button
+                android:id="@+id/btn_play_sprint"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/button_sprint"
+                android:elevation="2dp"
+                android:fontFamily="@font/rubik_bold"
+                android:text="@string/menu_play_sprint"
+                android:textSize="38sp"
+                app:cornerRadius="50sp" />
+
+            <Button
+                android:id="@+id/btn_play_marathon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/button_marathon"
+                android:elevation="2dp"
+                android:fontFamily="@font/rubik_bold"
+                android:text="@string/menu_play_marathon"
+                android:textSize="38sp"
+                app:cornerRadius="50sp" />
+
+            <Button
+                android:id="@+id/btn_play_endless"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/button_endless"
+                android:elevation="2dp"
+                android:fontFamily="@font/rubik_bold"
+                android:text="@string/menu_play_endless"
+                android:textSize="38sp"
+                app:cornerRadius="50sp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_play_back"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0">
+
+                <Button
+                    android:id="@+id/btn_play_back"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="96dp"
+                    android:layout_marginEnd="96dp"
+                    android:layout_weight="1"
+                    android:elevation="2dp"
+                    android:fontFamily="@font/rubik_medium"
+                    android:text="@string/menu_play_back"
+                    app:cornerRadius="50dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/btn_menu_play"
             android:layout_width="300dp"
             android:layout_height="120dp"
-            android:layout_marginTop="256dp"
-            android:backgroundTint="@color/play_green"
+            android:backgroundTint="@color/button_play"
+            android:elevation="2dp"
             android:fontFamily="@font/rubik_bold"
             android:text="@string/menu_play"
             android:textSize="60sp"
+            android:visibility="visible"
             app:cornerRadius="50sp"
             app:layout_constraintBottom_toBottomOf="@+id/tv_menu_credits"
             app:layout_constraintEnd_toEndOf="parent"
@@ -60,12 +138,12 @@
             android:id="@+id/ll_menu_misc"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="64dp"
+            android:layout_marginBottom="64dp"
             android:baselineAligned="false"
             android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/tv_menu_credits"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_menu_play">
+            app:layout_constraintStart_toStartOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cl_menu_settings"
@@ -78,7 +156,7 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:background="@drawable/rounded_button"
-                    android:backgroundTint="@color/button_black"
+                    android:elevation="2dp"
                     android:scaleType="centerInside"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -99,8 +177,8 @@
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:background="@drawable/rounded_button"
-                    android:backgroundTint="@color/button_black"
-                    android:padding="10dp"
+                    android:elevation="2dp"
+                    android:padding="12dp"
                     android:scaleType="centerInside"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -116,7 +194,7 @@
             android:id="@+id/tv_menu_credits"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="32dp"
             android:fontFamily="@font/rubik_medium"
             android:text="@string/menu_credits"
             android:textColor="@color/black"

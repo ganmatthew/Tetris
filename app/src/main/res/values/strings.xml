@@ -2,10 +2,18 @@
     <string name="app_name">Tetris</string>
     <string name="app_name_caps">TETRIS</string>
     <string name="menu_play">Play</string>
+    <string name="menu_play_sprint">Sprint</string>
+    <string name="menu_play_marathon">Marathon</string>
+    <string name="menu_play_endless">Endless</string>
+    <string name="menu_play_back">Back</string>
     <string name="menu_credits">By Matthew Gan and Jose Noblefranca</string>
     <string name="settings_header">Settings</string>
     <string name="settings_music">Toggle music</string>
     <string name="settings_sounds">Toggle sounds</string>
     <string name="settings_sensitivity">Set touch sensitivity</string>
-    <string name="settings_exit">Close Settings</string>
+    <string name="exit_menu">X</string>
+    <string name="leaderboard_default_rank">1</string>
+    <string name="leaderboard_default_username">Boaty McBoatFace</string>
+    <string name="leaderboard_default_score_value">58 min 02 sec</string>
+    <string name="leaderboard_default_timestamp">09/04/2021 5:08 PM</string>
 </resources>
