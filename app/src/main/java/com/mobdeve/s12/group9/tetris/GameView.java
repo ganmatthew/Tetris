@@ -39,35 +39,34 @@ public class GameView extends View {
 
      */
 
-    private static final int EMPTY_PIECE = 0;
-    private static final int I_PIECE = 1;
-    private static final int O_PIECE = 2;
-    private static final int T_PIECE = 3;
-    private static final int S_PIECE = 4;
-    private static final int Z_PIECE = 5;
-    private static final int J_PIECE = 6;
-    private static final int L_PIECE = 7;
+    public static final int I_PIECE = 1;
+    public static final int O_PIECE = 2;
+    public static final int T_PIECE = 3;
+    public static final int S_PIECE = 4;
+    public static final int Z_PIECE = 5;
+    public static final int J_PIECE = 6;
+    public static final int L_PIECE = 7;
 
 
-    private int board_frame_left_offset;
-    private int board_frame_top_offset;
-    private int board_frame_right_offset;
-    private int board_frame_bottom_offset;
+    private float board_frame_left_offset;
+    private float board_frame_top_offset;
+    private float board_frame_right_offset;
+    private float board_frame_bottom_offset;
 
-    private int nxpc_frame_left_offset;
-    private int nxpc_frame_top_offset;
-    private int nxpc_frame_right_offset;
-    private int nxpc_frame_bottom_offset;
+    private float nxpc_frame_left_offset;
+    private float nxpc_frame_top_offset;
+    private float nxpc_frame_right_offset;
+    private float nxpc_frame_bottom_offset;
 
-    private int board_left_offset;
-    private int board_top_offset;
-    private int board_right_offset;
-    private int board_bottom_offset;
+    private float board_left_offset;
+    private float board_top_offset;
+    private float board_right_offset;
+    private float board_bottom_offset;
 
-    private int nxpc_left_offset;
-    private int nxpc_top_offset;
-    private int nxpc_right_offset;
-    private int nxpc_bottom_offset;
+    private float nxpc_left_offset;
+    private float nxpc_top_offset;
+    private float nxpc_right_offset;
+    private float nxpc_bottom_offset;
 
     private Bitmap bitmap;
     private Canvas canvas;
@@ -77,35 +76,35 @@ public class GameView extends View {
     public GameView(Context context) {
         super(context);
 
-        board_left_offset =       GameActivity.GAME_OFFSET;
-        board_top_offset =        GameActivity.GAME_OFFSET;
-        board_right_offset =      ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_WIDTH) + GameActivity.GAME_OFFSET);
-        board_bottom_offset =     ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET);
+        board_left_offset =                     GameActivity.GAME_OFFSET;
+        board_top_offset =                      GameActivity.GAME_OFFSET;
+        board_right_offset =                    ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_WIDTH) + GameActivity.GAME_OFFSET);
+        board_bottom_offset =                   ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET);
 
-        nxpc_left_offset =    board_frame_right_offset + 20;
-        nxpc_top_offset =     board_frame_top_offset;
-        nxpc_right_offset =   nxpc_frame_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
-        nxpc_bottom_offset =  (GameActivity.NUM_BLOCKSIZE * 4) + GameActivity.GAME_OFFSET;
+        nxpc_left_offset =                      board_right_offset + 30;
+        nxpc_top_offset =                       board_top_offset;
+        nxpc_right_offset =                     nxpc_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
+        nxpc_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_top_offset;
 
-        bitmap = Bitmap.createBitmap(
-                (GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_WIDTH),
-                (GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT),
-                Bitmap.Config.ARGB_8888);;
+        board_frame_left_offset =               (float) (board_left_offset - 5.5);
+        board_frame_top_offset =                (float) (board_top_offset - 5.6);
+        board_frame_right_offset =              (float) (board_right_offset + 5.6);
+        board_frame_bottom_offset =             (float) (board_bottom_offset + 5.5);
 
-        canvas = new Canvas(bitmap);
+        nxpc_frame_left_offset =                nxpc_left_offset - 5;
+        nxpc_frame_top_offset =                 nxpc_top_offset - 5;
+        nxpc_frame_right_offset =               nxpc_right_offset + 5;
+        nxpc_frame_bottom_offset =              nxpc_bottom_offset + 5;
+
         frame_painter = new Paint();
         block_painter = new Paint();
     }
 
-    public void onDraw(Canvas canvas) {
-
+    public void DrawBorders(Canvas canvas){
         frame_painter.setStrokeWidth(10);
         frame_painter.setStyle(Paint.Style.STROKE);
         frame_painter.setColor(Color.GRAY);
 
-        int[][] temp = GameActivity.get_gamedata();
-        /*
-        game frame
         canvas.drawRect(
                 board_frame_left_offset,
                 board_frame_top_offset,
@@ -120,9 +119,10 @@ public class GameView extends View {
                 nxpc_frame_right_offset,
                 nxpc_frame_bottom_offset,
                 frame_painter);
+    }
 
-         */
-
+    public void DrawPieces(Canvas canvas){
+        int[][] temp = GameActivity.get_gamedata();
         for (int i = 0; i < GameActivity.NUM_HEIGHT; i++){
             for (int j = 0; j < GameActivity.NUM_WIDTH; j++){
                 switch (temp[i][j]){
@@ -152,21 +152,23 @@ public class GameView extends View {
                 }
 
 
-                int left =      GameActivity.GAME_OFFSET + (GameActivity.NUM_BLOCKSIZE * j);
-                int top =       GameActivity.GAME_OFFSET + (GameActivity.NUM_BLOCKSIZE * i);
-                int right =     left + GameActivity.NUM_BLOCKSIZE;
-                int bottom =    top + GameActivity.NUM_BLOCKSIZE;
+                float left =      board_left_offset + (GameActivity.NUM_BLOCKSIZE * j);
+                float top =       board_top_offset + (GameActivity.NUM_BLOCKSIZE * i);
+                float right =     left + GameActivity.NUM_BLOCKSIZE;
+                float bottom =    top + GameActivity.NUM_BLOCKSIZE;
 
                 canvas.drawRect(left, top, right, bottom, block_painter);
 
             }
         }
+    }
 
 
 
-
-
-
-
+    public void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        //int gamestate = GameActivity.getGame_state();
+        DrawBorders(canvas);
+        DrawPieces(canvas);
     }
 }
