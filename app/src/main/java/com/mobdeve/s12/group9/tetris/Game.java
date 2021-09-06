@@ -92,12 +92,12 @@ public class Game extends AppCompatActivity implements GestureDetector.OnGesture
         float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
 
         if (angle > -45 && angle <= 45) {
-            Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
+            Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
             return true;
         }
 
         if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
-            Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
+            Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
             return true;
         }
 
