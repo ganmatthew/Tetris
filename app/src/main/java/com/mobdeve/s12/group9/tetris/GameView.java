@@ -190,18 +190,23 @@ public class GameView extends View {
     }
 
     private void drawNextPieces(Canvas canvas) {
+        //paint next block area first.
+        block_painter.setColor(getColor(R.color.tetromino_black));
+        canvas.drawRect(next_left_offset, next_top_offset, next_right_offset, next_bottom_offset, block_painter);
+
+
         List <Integer> piecebag = GameActivity.getPieceBag();
 
         Tetromino t[] = new Tetromino[4];
 
         //Tetromino t = new Tetromino(Shape.values()[piecebag.get(0)]);
 
-        int[][] temp = new int[12][4];
+        int[][] temp = new int[16][4];
 
 
         for (int i = 0; i < 4; i++) {
             t[i] = new Tetromino(Shape.values()[piecebag.get(i)]);
-            t[i].addYOffset(i * 3);
+            t[i].addYOffset(i * 4);
 
             temp[t[i].getDataY()[0][0]][t[i].getDataX()[0][0]] = t[i].getShape().ordinal();
             temp[t[i].getDataY()[0][1]][t[i].getDataX()[0][1]] = t[i].getShape().ordinal();
@@ -209,7 +214,7 @@ public class GameView extends View {
             temp[t[i].getDataY()[0][3]][t[i].getDataX()[0][3]] = t[i].getShape().ordinal();
         }
 
-        for (int i = 0; i < 12; i++){
+        for (int i = 0; i < 16; i++){
             for (int j = 0; j < 4; j++){
                 Shape shape = Shape.values()[temp[i][j]];
                 switch (shape){
@@ -238,8 +243,8 @@ public class GameView extends View {
                         block_painter.setColor(getColor(R.color.tetromino_black));
                 }
 
-                float left =      next_left_offset + (70 * j);
-                float top =       next_top_offset + (70 * i);
+                float left =      next_left_offset + (70 * j) + 20;
+                float top =       next_top_offset + (70 * i) + 80;
                 float right =     left + 70;
                 float bottom =    top + 70;
 
@@ -247,12 +252,6 @@ public class GameView extends View {
 
             }
         }
-
-
-
-
-
-
     }
 
     // Returns the ColorInt for a given resource color ID

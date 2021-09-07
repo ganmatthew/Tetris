@@ -193,8 +193,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         break;
 
                     case 1:
+                        DELAY = 1000;
                         gameState = !SpawnTetromino() ? GameState.END.ordinal() : GameState.FALL.ordinal();
-                        DELAY = 500;
                         break;
 
                     case 2:
