@@ -99,13 +99,31 @@ public class Tetromino {
         switch(direction){
             case DOWN:
                 addYOffset(1);
-
                 for (int i = 0; i < 4; i++){
                     if (dataY[pos][i] > 19 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
                         addYOffset(-1);
                         rt_value = false;
                     }
+                }
+                break;
 
+            case RIGHT:
+                addXOffset(1);
+                for (int i = 0; i < 4; i++){
+                    if (dataX[pos][i] > 9 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
+                        addXOffset(-1);
+                        rt_value = false;
+                    }
+                }
+                break;
+
+            case LEFT:
+                addXOffset(-1);
+                for (int i = 0; i < 4; i++){
+                    if (dataX[pos][i] < 0 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
+                        addXOffset(1);
+                        rt_value = false;
+                    }
                 }
                 break;
         }
@@ -116,9 +134,6 @@ public class Tetromino {
 
         return rt_value;
     }
-
-
-
 
     public Tetromino(Shape shape) {
         this.pos = 0;
@@ -154,5 +169,4 @@ public class Tetromino {
                 break;
         }
     }
-
 }

@@ -11,6 +11,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -49,13 +50,17 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private static int[][] blockData;
     private static List <Integer> pieceBag;
 
+    private static Tetromino falling_tetromino;
+    private static int hold_tetromino_value;
+
     // Game components
     private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
     private GameView gameView;
     private Handler handler;
     private Runnable loop;
-    private Tetromino tetromino;
+    private boolean used_hold;
+
 
 
     @Override
@@ -79,6 +84,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         // Initialize a stack to choose the next tetrominoes from
         pieceBag = new ArrayList<Integer>();
 
+        hold_tetromino_value = 0;
 
         // Initialize and set the view to the grid canvas
         gameView = new GameView(this);
@@ -91,6 +97,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     /*
         Touch gesture listeners
      */
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -134,8 +141,18 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onSingleTapUp(MotionEvent e) { return false; }
 
+    //on scroll is called on the motion, onfling is called after the motion.
+
     @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) { return false; }
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
+        if (angle < -45 && angle >= -135) {
+            Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
+            DELAY = 100;
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public void onLongPress(MotionEvent e) {}
@@ -147,29 +164,32 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         if (angle > -45 && angle <= 45) {
             Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
-
+            falling_tetromino.MoveTetromino(Direction.RIGHT);
             return true;
         }
 
         if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
             Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
-
+            falling_tetromino.MoveTetromino(Direction.LEFT);
             return true;
         }
 
         if (angle < -45 && angle >= -135) {
             Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
-
+            DELAY = 1000;
             return true;
         }
 
         if (angle > 45 && angle <= 135) {
             Log.d(GESTURE_TAG, "\nFling from DOWN to UP\n");
+            SwapTetromino();
             return true;
         }
 
         return false;
     }
+
+
 
     /*
         Game board modifiers
@@ -195,14 +215,16 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     case 1:
                         DELAY = 1000;
                         gameState = !SpawnTetromino() ? GameState.END.ordinal() : GameState.FALL.ordinal();
+                        used_hold = false;
                         break;
 
                     case 2:
-                        if(!tetromino.MoveTetromino(Direction.DOWN)) counter++;
+                        if(!falling_tetromino.MoveTetromino(Direction.DOWN)) counter++;
 
                         if (counter > 2){
                             if(SpawnTetromino()){
                                 counter = 1;
+                                used_hold = false;
                             }
                             else{
                                 gameState = 3;
@@ -230,6 +252,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public static int[][] getGameData(){ return blockData; }
 
     public static int getGameState(){ return gameState; }
+
+    public static int getHold_tetromino_value(){ return hold_tetromino_value; }
 
     public static List<Integer> getPieceBag(){ return pieceBag;}
 
@@ -276,18 +300,18 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     public boolean SpawnTetromino(){
 
-        tetromino = new Tetromino(Shape.values()[pieceBag.remove(0)]);
+        falling_tetromino = new Tetromino(Shape.values()[pieceBag.remove(0)]);
 
-        if (tetromino.getShape() == Shape.O_SHAPE){
-            tetromino.addXOffset(4);
+        if (falling_tetromino.getShape() == Shape.O_SHAPE){
+            falling_tetromino.addXOffset(4);
         }
         else{
-            tetromino.addXOffset(3);
+            falling_tetromino.addXOffset(3);
         }
 
         //check if spawning conditions are legal, return false otherwise.
         for (int i = 0; i < 4; i++){
-            if (blockData[tetromino.getDataY()[tetromino.getPos()][i]][tetromino.getDataX()[tetromino.getPos()][i]] != 0){
+            if (blockData[falling_tetromino.getDataY()[falling_tetromino.getPos()][i]][falling_tetromino.getDataX()[falling_tetromino.getPos()][i]] != 0){
                 return false;
             }
         }
@@ -302,4 +326,33 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         return true;
     }
 
+    public void SwapTetromino(){
+        if (!used_hold){
+            int temp;
+
+            for (int i = 0; i < 4; i++){
+                blockData[falling_tetromino.getDataY()[falling_tetromino.getPos()][i]][falling_tetromino.getDataX()[falling_tetromino.getPos()][i]] = 0; //empty shape
+            }
+
+            if (hold_tetromino_value != 0){
+                temp = hold_tetromino_value;
+                hold_tetromino_value = falling_tetromino.getShape().ordinal();
+                falling_tetromino = new Tetromino(Shape.values()[temp]);
+
+                if (falling_tetromino.getShape() == Shape.O_SHAPE){
+                    falling_tetromino.addXOffset(4);
+                }
+                else{
+                    falling_tetromino.addXOffset(3);
+                }
+            }
+            else{
+                hold_tetromino_value = falling_tetromino.getShape().ordinal();
+                SpawnTetromino();
+            }
+
+        }
+
+        used_hold = true;
+    }
 }

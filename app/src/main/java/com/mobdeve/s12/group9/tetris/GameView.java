@@ -186,7 +186,67 @@ public class GameView extends View {
         if (GameActivity.getGameState() != 3){
             drawPieces(canvas);
             drawNextPieces(canvas);
+            drawHoldPiece(canvas);
         }
+    }
+
+    private void drawHoldPiece(Canvas canvas) {
+        block_painter.setColor(getColor(R.color.tetromino_black));
+        canvas.drawRect(hold_left_offset, hold_top_offset, hold_right_offset, hold_bottom_offset, block_painter);
+
+        int checkval = GameActivity.getHold_tetromino_value();
+
+        if (checkval != 0){
+            Tetromino t = new Tetromino(Shape.values()[checkval]);
+
+            int temp[][] = new int[4][4];
+
+            temp[t.getDataY()[0][0]][t.getDataX()[0][0]] = t.getShape().ordinal();
+            temp[t.getDataY()[0][1]][t.getDataX()[0][1]] = t.getShape().ordinal();
+            temp[t.getDataY()[0][2]][t.getDataX()[0][2]] = t.getShape().ordinal();
+            temp[t.getDataY()[0][3]][t.getDataX()[0][3]] = t.getShape().ordinal();
+
+            for (int i = 0; i < 4; i++){
+                for (int j = 0; j < 4; j++){
+                    Shape shape = Shape.values()[temp[i][j]];
+                    switch (shape){
+                        case I_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_cyan));
+                            break;
+                        case O_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_yellow));
+                            break;
+                        case T_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_magenta));
+                            break;
+                        case J_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_blue));
+                            break;
+                        case L_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_orange));
+                            break;
+                        case S_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_green));
+                            break;
+                        case Z_SHAPE:
+                            block_painter.setColor(getColor(R.color.tetromino_red));
+                            break;
+                        default:
+                            block_painter.setColor(getColor(R.color.tetromino_black));
+                    }
+
+                    float left =      hold_left_offset + (70 * j) + 20;
+                    float top =       hold_top_offset + (70 * i) + 40;
+                    float right =     left + 70;
+                    float bottom =    top + 70;
+
+                    canvas.drawRect(left, top, right, bottom, block_painter);
+                }
+            }
+        }
+
+
+
     }
 
     private void drawNextPieces(Canvas canvas) {
