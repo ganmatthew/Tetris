@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
 
+import java.util.List;
+
 public class GameView extends View {
 
 
@@ -28,10 +30,10 @@ public class GameView extends View {
     public static final int board_frame_right_offset = 10 * 50 + 100; //
     public static final int board_frame_bottom_offset = 20 * 50 + 100; //
 
-    public static final int nxpc_frame_left_offset = (20 * 50 + 100) + 50; //
-    public static final int nxpc_frame_top_offset = 100;
-    public static final int nxpc_frame_right_offset = 1950 + (4 * 50); //
-    public static final int nxpc_frame_bottom_offset = 100 + (4 * 50); //
+    public static final int hold_frame_left_offset = (20 * 50 + 100) + 50; //
+    public static final int hold_frame_top_offset = 100;
+    public static final int hold_frame_right_offset = 1950 + (4 * 50); //
+    public static final int hold_frame_bottom_offset = 100 + (4 * 50); //
 
 
      */
@@ -41,20 +43,30 @@ public class GameView extends View {
     private float board_frame_right_offset;
     private float board_frame_bottom_offset;
 
-    private float nxpc_frame_left_offset;
-    private float nxpc_frame_top_offset;
-    private float nxpc_frame_right_offset;
-    private float nxpc_frame_bottom_offset;
+    private float hold_frame_left_offset;
+    private float hold_frame_top_offset;
+    private float hold_frame_right_offset;
+    private float hold_frame_bottom_offset;
+
+    private float next_frame_left_offset;
+    private float next_frame_top_offset;
+    private float next_frame_right_offset;
+    private float next_frame_bottom_offset;
 
     private float board_left_offset;
     private float board_top_offset;
     private float board_right_offset;
     private float board_bottom_offset;
 
-    private float nxpc_left_offset;
-    private float nxpc_top_offset;
-    private float nxpc_right_offset;
-    private float nxpc_bottom_offset;
+    private float hold_left_offset;
+    private float hold_top_offset;
+    private float hold_right_offset;
+    private float hold_bottom_offset;
+
+    private float next_left_offset;
+    private float next_top_offset;
+    private float next_right_offset;
+    private float next_bottom_offset;
 
     private Paint frame_painter;
     private Paint block_painter;
@@ -67,20 +79,30 @@ public class GameView extends View {
         board_right_offset =                    ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_WIDTH) + GameActivity.GAME_OFFSET);
         board_bottom_offset =                   ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET);
 
-        nxpc_left_offset =                      board_right_offset + 30;
-        nxpc_top_offset =                       board_top_offset;
-        nxpc_right_offset =                     nxpc_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
-        nxpc_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_top_offset;
+        hold_left_offset =                      board_right_offset + 30;
+        hold_top_offset =                       board_top_offset;
+        hold_right_offset =                     hold_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
+        hold_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_top_offset;
+
+        next_left_offset =                      hold_left_offset;
+        next_top_offset =                       hold_bottom_offset + 30;
+        next_right_offset =                     next_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
+        next_bottom_offset =                    ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET);
 
         board_frame_left_offset =               (float) (board_left_offset - 5.5);
         board_frame_top_offset =                (float) (board_top_offset - 5.6);
         board_frame_right_offset =              (float) (board_right_offset + 5.6);
         board_frame_bottom_offset =             (float) (board_bottom_offset + 5.5);
 
-        nxpc_frame_left_offset =                nxpc_left_offset - 5;
-        nxpc_frame_top_offset =                 nxpc_top_offset - 5;
-        nxpc_frame_right_offset =               nxpc_right_offset + 5;
-        nxpc_frame_bottom_offset =              nxpc_bottom_offset + 5;
+        hold_frame_left_offset =                hold_left_offset - 5;
+        hold_frame_top_offset =                 hold_top_offset - 5;
+        hold_frame_right_offset =               hold_right_offset + 5;
+        hold_frame_bottom_offset =              hold_bottom_offset + 5;
+
+        next_frame_left_offset =                next_left_offset - 5;
+        next_frame_top_offset =                 next_top_offset - 5;
+        next_frame_right_offset =               next_right_offset + 5;
+        next_frame_bottom_offset =              next_bottom_offset + 5;
 
         frame_painter = new Paint();
         block_painter = new Paint();
@@ -100,11 +122,18 @@ public class GameView extends View {
 
         //next piece frame
         canvas.drawRect(
-            nxpc_frame_left_offset,
-            nxpc_frame_top_offset,
-            nxpc_frame_right_offset,
-            nxpc_frame_bottom_offset,
+            hold_frame_left_offset,
+            hold_frame_top_offset,
+            hold_frame_right_offset,
+            hold_frame_bottom_offset,
             frame_painter);
+
+        canvas.drawRect(
+                next_frame_left_offset,
+                next_frame_top_offset,
+                next_frame_right_offset,
+                next_frame_bottom_offset,
+                frame_painter);
     }
 
     public void drawPieces(Canvas canvas){
@@ -149,12 +178,81 @@ public class GameView extends View {
             }
         }
     }
+    
 
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //int gamestate = GameActivity.getGame_state();
         drawBorders(canvas);
-        drawPieces(canvas);
+        if (GameActivity.getGameState() != 3){
+            drawPieces(canvas);
+            drawNextPieces(canvas);
+        }
+    }
+
+    private void drawNextPieces(Canvas canvas) {
+        List <Integer> piecebag = GameActivity.getPieceBag();
+
+        Tetromino t[] = new Tetromino[4];
+
+        //Tetromino t = new Tetromino(Shape.values()[piecebag.get(0)]);
+
+        int[][] temp = new int[12][4];
+
+
+        for (int i = 0; i < 4; i++) {
+            t[i] = new Tetromino(Shape.values()[piecebag.get(i)]);
+            t[i].addYOffset(i * 3);
+
+            temp[t[i].getDataY()[0][0]][t[i].getDataX()[0][0]] = t[i].getShape().ordinal();
+            temp[t[i].getDataY()[0][1]][t[i].getDataX()[0][1]] = t[i].getShape().ordinal();
+            temp[t[i].getDataY()[0][2]][t[i].getDataX()[0][2]] = t[i].getShape().ordinal();
+            temp[t[i].getDataY()[0][3]][t[i].getDataX()[0][3]] = t[i].getShape().ordinal();
+        }
+
+        for (int i = 0; i < 12; i++){
+            for (int j = 0; j < 4; j++){
+                Shape shape = Shape.values()[temp[i][j]];
+                switch (shape){
+                    case I_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_cyan));
+                        break;
+                    case O_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_yellow));
+                        break;
+                    case T_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_magenta));
+                        break;
+                    case J_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_blue));
+                        break;
+                    case L_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_orange));
+                        break;
+                    case S_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_green));
+                        break;
+                    case Z_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_red));
+                        break;
+                    default:
+                        block_painter.setColor(getColor(R.color.tetromino_black));
+                }
+
+                float left =      next_left_offset + (70 * j);
+                float top =       next_top_offset + (70 * i);
+                float right =     left + 70;
+                float bottom =    top + 70;
+
+                canvas.drawRect(left, top, right, bottom, block_painter);
+
+            }
+        }
+
+
+
+
+
+
     }
 
     // Returns the ColorInt for a given resource color ID

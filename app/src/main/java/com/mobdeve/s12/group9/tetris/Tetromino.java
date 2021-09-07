@@ -75,9 +75,7 @@ public class Tetromino {
         addOffsetData(dataX, value);
     }
 
-    public void addYOffset(int value){
-        addOffsetData(dataY, value);
-    }
+    public void addYOffset(int value) { addOffsetData(dataY, value); }
 
     private int addOffsetData(int[][] data, int value) {
         for (int i = 0; i < 4; i++){
@@ -87,6 +85,40 @@ public class Tetromino {
         }
         return value;
     }
+
+    public boolean MoveTetromino(Direction direction){
+        boolean rt_value = true;
+
+        int curr_data[][] = GameActivity.getGameData();
+
+        //erase the data in curr_data..
+        for (int i = 0; i < 4; i++){
+            curr_data[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
+        }
+
+        switch(direction){
+            case DOWN:
+                addYOffset(1);
+
+                for (int i = 0; i < 4; i++){
+                    if (dataY[pos][i] > 19 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
+                        addYOffset(-1);
+                        rt_value = false;
+                    }
+
+                }
+                break;
+        }
+
+        for (int i = 0; i < 4; i++){
+            curr_data[dataY[pos][i]][dataX[pos][i]] = shape.ordinal(); //empty shape
+        }
+
+        return rt_value;
+    }
+
+
+
 
     public Tetromino(Shape shape) {
         this.pos = 0;
