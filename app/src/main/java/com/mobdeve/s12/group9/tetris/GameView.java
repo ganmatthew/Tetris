@@ -1,12 +1,9 @@
 package com.mobdeve.s12.group9.tetris;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.view.View;
 
 public class GameView extends View {
@@ -38,15 +35,6 @@ public class GameView extends View {
 
 
      */
-    public static final int EMPTY_PIECE = 0;
-    public static final int I_PIECE = 1;
-    public static final int O_PIECE = 2;
-    public static final int T_PIECE = 3;
-    public static final int S_PIECE = 4;
-    public static final int Z_PIECE = 5;
-    public static final int J_PIECE = 6;
-    public static final int L_PIECE = 7;
-
 
     private float board_frame_left_offset;
     private float board_frame_top_offset;
@@ -68,8 +56,6 @@ public class GameView extends View {
     private float nxpc_right_offset;
     private float nxpc_bottom_offset;
 
-    private Bitmap bitmap;
-    private Canvas canvas;
     private Paint frame_painter;
     private Paint block_painter;
 
@@ -100,57 +86,58 @@ public class GameView extends View {
         block_painter = new Paint();
     }
 
-    public void DrawBorders(Canvas canvas){
+    public void drawBorders(Canvas canvas){
         frame_painter.setStrokeWidth(10);
         frame_painter.setStyle(Paint.Style.STROKE);
         frame_painter.setColor(Color.GRAY);
 
         canvas.drawRect(
-                board_frame_left_offset,
-                board_frame_top_offset,
-                board_frame_right_offset,
-                board_frame_bottom_offset,
-                frame_painter);
+            board_frame_left_offset,
+            board_frame_top_offset,
+            board_frame_right_offset,
+            board_frame_bottom_offset,
+            frame_painter);
 
         //next piece frame
         canvas.drawRect(
-                nxpc_frame_left_offset,
-                nxpc_frame_top_offset,
-                nxpc_frame_right_offset,
-                nxpc_frame_bottom_offset,
-                frame_painter);
+            nxpc_frame_left_offset,
+            nxpc_frame_top_offset,
+            nxpc_frame_right_offset,
+            nxpc_frame_bottom_offset,
+            frame_painter);
     }
 
-    public void DrawPieces(Canvas canvas){
-        int[][] temp = GameActivity.get_gamedata();
+    public void drawPieces(Canvas canvas){
+        int[][] temp = GameActivity.getGameData();
         for (int i = 0; i < GameActivity.NUM_HEIGHT; i++){
             for (int j = 0; j < GameActivity.NUM_WIDTH; j++){
-                switch (temp[i][j]){
-                    case I_PIECE:
-                        block_painter.setColor(Color.CYAN);
+                // Gets the ordinal of the Shape enum from the integer of the grid cell
+                Shape shape = Shape.values()[temp[i][j]];
+                switch (shape){
+                    case I_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_cyan));
                         break;
-                    case O_PIECE:
-                        block_painter.setColor(Color.YELLOW);
+                    case O_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_yellow));
                         break;
-                    case T_PIECE:
-                        block_painter.setColor(Color.MAGENTA);
+                    case T_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_magenta));
                         break;
-                    case J_PIECE:
-                        block_painter.setColor(Color.BLUE);
+                    case J_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_blue));
                         break;
-                    case L_PIECE:
-                        block_painter.setColor(Color.rgb(255, 165, 0)); //java is racist to orange
+                    case L_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_orange));
                         break;
-                    case S_PIECE:
-                        block_painter.setColor(Color.GREEN);
+                    case S_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_green));
                         break;
-                    case Z_PIECE:
-                        block_painter.setColor(Color.RED);
+                    case Z_SHAPE:
+                        block_painter.setColor(getColor(R.color.tetromino_red));
                         break;
                     default:
-                        block_painter.setColor(Color.BLACK);
+                        block_painter.setColor(getColor(R.color.tetromino_black));
                 }
-
 
                 float left =      board_left_offset + (GameActivity.NUM_BLOCKSIZE * j);
                 float top =       board_top_offset + (GameActivity.NUM_BLOCKSIZE * i);
@@ -163,12 +150,13 @@ public class GameView extends View {
         }
     }
 
-
-
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         //int gamestate = GameActivity.getGame_state();
-        DrawBorders(canvas);
-        DrawPieces(canvas);
+        drawBorders(canvas);
+        drawPieces(canvas);
     }
+
+    // Returns the ColorInt for a given resource color ID
+    private int getColor(int colorId) { return getResources().getColor(colorId); }
 }

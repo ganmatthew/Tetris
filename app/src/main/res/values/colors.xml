@@ -22,4 +22,13 @@
     <color name="leaderboard_item_color">#BF303340</color> <!--Note the first two digits are alpha (transparency) in hex-->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="tetromino_red">#EF2029</color>
+    <color name="tetromino_orange">#EF7921</color>
+    <color name="tetromino_yellow">#F7D308</color>
+    <color name="tetromino_green">#42B642</color>
+    <color name="tetromino_cyan">#31C7EF</color>
+    <color name="tetromino_blue">#5A65AD</color>
+    <color name="tetromino_magenta">#AD4D9C</color>
+    <color name="tetromino_black">#000123</color>
 </resources>

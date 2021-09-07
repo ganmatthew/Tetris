@@ -32,11 +32,10 @@ public class MainActivity extends AppCompatActivity {
     private Button btnPlay;
     private ImageButton btnSettings;
     private ImageButton btnLeader;
+
+    // View components
     private View settingsView;
     private View leaderView;
-
-    // Board view components
-    private View gameView;
 
     // Settings view components
     private SharedPreferences sp;
