@@ -1,9 +1,9 @@
 package com.mobdeve.s12.group9.tetris;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,19 +12,12 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
-import java.util.Stack;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 
 enum GameState {
     NEW,
@@ -40,28 +33,38 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public static final int NUM_HEIGHT = 20;
     public static final int NUM_WIDTH = 10;
     public static final int NUM_BLOCKSIZE = 80;
-    public static final int GAME_OFFSET = 100;
+    //public static final int GAME_OFFSET = 100;
+    public static final int GAME_OFFSET = 10;
 
     // Game activity parameters
     public static int DELAY = 1000;
 
     // Grid components
-    private static int gameState;
+    private static GameState gameState;
     private static int[][] blockData;
     private static List <Integer> pieceBag;
 
-    private static Tetromino falling_tetromino;
-    private static int hold_tetromino_value;
+    private static Tetromino fallingTetromino;
+    private static Shape holdTetromino;
 
     // Game components
     private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
-    private GameView gameView;
+    private ViewsHelper helper;
     private Handler handler;
     private Runnable loop;
-    private boolean used_hold;
+    private boolean usedHold;
 
+    // Layout components
+    private ConstraintLayout clGridLayout;
+    private ConstraintLayout clHoldLayout;
+    private ConstraintLayout clNextLayout;
 
+    private GridView gridView;
+    private HoldView holdView;
+    private NextView nextView;
+
+    private MusicService musicService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,17 +82,35 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         blockData = new int[NUM_HEIGHT][NUM_WIDTH];
 
         // Set game state to starting
-        gameState = 0;
+        gameState = GameState.NEW;
 
         // Initialize a stack to choose the next tetrominoes from
         pieceBag = new ArrayList<Integer>();
 
-        hold_tetromino_value = 0;
+        holdTetromino = Shape.EMPTY_SHAPE;
 
-        // Initialize and set the view to the grid canvas
-        gameView = new GameView(this);
-        gameView.setBackgroundColor(Color.BLACK);
-        setContentView(gameView);
+        // Initialize and set the views to the layouts
+        helper = new ViewsHelper(GameActivity.this);
+        BoardViewGroup group = helper.getViews();
+
+        gridView = group.gv;
+        holdView = group.hv;
+        nextView = group.nv;
+
+        setContentView(R.layout.activity_board);
+
+        clGridLayout = findViewById(R.id.cl_board_grid);
+        clGridLayout.addView(gridView, 0);
+
+        clHoldLayout = findViewById(R.id.cl_board_hold);
+        clHoldLayout.addView(holdView, 0);
+
+        clNextLayout = findViewById(R.id.cl_board_next);
+        clNextLayout.addView(nextView, 0);
+
+        // Start MusicService, plays the Tetris theme
+        musicService = new MusicService(GameActivity.this);
+        musicService.start();
 
         startGame();
     }
@@ -160,13 +181,13 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         if (angle > -45 && angle <= 45) {
             Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
-            falling_tetromino.MoveTetromino(Direction.RIGHT);
+            fallingTetromino.MoveTetromino(Direction.RIGHT);
             return true;
         }
 
         if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
             Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
-            falling_tetromino.MoveTetromino(Direction.LEFT);
+            fallingTetromino.MoveTetromino(Direction.LEFT);
             return true;
         }
 
@@ -178,14 +199,12 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         if (angle > 45 && angle <= 135) {
             Log.d(GESTURE_TAG, "\nFling from DOWN to UP\n");
-            SwapTetromino();
+            swapTetromino();
             return true;
         }
 
         return false;
     }
-
-
 
     /*
         Game board modifiers
@@ -201,41 +220,44 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             public void run() {
 
                 switch (gameState){
-                    case 0:
+                    case NEW:
                         populatePieceBag();
                         populatePieceBag();
-                        gameState = 1;
+                        gameState = GameState.SPAWN;
                         DELAY = 100;
                         break;
 
-                    case 1:
+                    case SPAWN:
                         DELAY = 1000;
-                        gameState = !SpawnTetromino() ? GameState.END.ordinal() : GameState.FALL.ordinal();
-                        used_hold = false;
+                        gameState = !SpawnTetromino() ? GameState.END : GameState.FALL;
+                        usedHold = false;
                         break;
 
-                    case 2:
-                        if(!falling_tetromino.MoveTetromino(Direction.DOWN)) counter++;
+                    case FALL:
+                        if(!fallingTetromino.MoveTetromino(Direction.DOWN)) counter++;
 
                         if (counter > 2){
                             if(SpawnTetromino()){
                                 counter = 1;
-                                used_hold = false;
+                                usedHold = false;
                             }
                             else{
-                                gameState = 3;
+                                gameState = GameState.END;
                             }
                         }
                         break;
 
-                    case 3:
+                    case END:
                         blockData = new int[][]{{0}};
                         handler.removeCallbacksAndMessages(this);
                         break;
 
                 }
 
-                gameView.invalidate();
+                gridView.invalidate();
+                holdView.invalidate();
+                nextView.invalidate();
+
                 //Toast.makeText(GameActivity.this, "delay testing", Toast.LENGTH_SHORT).show();
                 handler.postDelayed(this, DELAY);
             }
@@ -247,9 +269,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     public static int[][] getGameData(){ return blockData; }
 
-    public static int getGameState(){ return gameState; }
+    public static GameState getGameState(){ return gameState; }
 
-    public static int getHold_tetromino_value(){ return hold_tetromino_value; }
+    public static Shape getHoldTetromino(){ return holdTetromino; }
 
     public static List<Integer> getPieceBag(){ return pieceBag;}
 
@@ -296,18 +318,18 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     public boolean SpawnTetromino(){
 
-        falling_tetromino = new Tetromino(Shape.values()[pieceBag.remove(0)]);
+        fallingTetromino = new Tetromino(Shape.values()[pieceBag.remove(0)]);
 
-        if (falling_tetromino.getShape() == Shape.O_SHAPE){
-            falling_tetromino.addXOffset(4);
+        if (fallingTetromino.getShape() == Shape.O_SHAPE){
+            fallingTetromino.addXOffset(4);
         }
         else{
-            falling_tetromino.addXOffset(3);
+            fallingTetromino.addXOffset(3);
         }
 
         //check if spawning conditions are legal, return false otherwise.
         for (int i = 0; i < 4; i++){
-            if (blockData[falling_tetromino.getDataY()[falling_tetromino.getPos()][i]][falling_tetromino.getDataX()[falling_tetromino.getPos()][i]] != 0){
+            if (blockData[fallingTetromino.getDataY()[fallingTetromino.getPos()][i]][fallingTetromino.getDataX()[fallingTetromino.getPos()][i]] != 0){
                 return false;
             }
         }
@@ -322,33 +344,69 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         return true;
     }
 
-    public void SwapTetromino(){
-        if (!used_hold){
-            int temp;
+    public void swapTetromino(){
+        if (!usedHold){
+            Shape temp;
 
             for (int i = 0; i < 4; i++){
-                blockData[falling_tetromino.getDataY()[falling_tetromino.getPos()][i]][falling_tetromino.getDataX()[falling_tetromino.getPos()][i]] = 0; //empty shape
+                blockData[fallingTetromino.getDataY()[fallingTetromino.getPos()][i]][fallingTetromino.getDataX()[fallingTetromino.getPos()][i]] = 0; //empty shape
             }
 
-            if (hold_tetromino_value != 0){
-                temp = hold_tetromino_value;
-                hold_tetromino_value = falling_tetromino.getShape().ordinal();
-                falling_tetromino = new Tetromino(Shape.values()[temp]);
+            if (holdTetromino != Shape.EMPTY_SHAPE){
+                temp = holdTetromino;
+                holdTetromino = fallingTetromino.getShape();
+                fallingTetromino = new Tetromino(temp);
 
-                if (falling_tetromino.getShape() == Shape.O_SHAPE){
-                    falling_tetromino.addXOffset(4);
+                if (fallingTetromino.getShape() == Shape.O_SHAPE){
+                    fallingTetromino.addXOffset(4);
                 }
                 else{
-                    falling_tetromino.addXOffset(3);
+                    fallingTetromino.addXOffset(3);
                 }
             }
             else{
-                hold_tetromino_value = falling_tetromino.getShape().ordinal();
+                holdTetromino = fallingTetromino.getShape();
                 SpawnTetromino();
             }
 
         }
 
-        used_hold = true;
+        usedHold = true;
+    }
+
+    /***
+     * Life cycle
+     */
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (musicService != null) {
+            musicService.pause();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (musicService != null) {
+            musicService.pause();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (musicService != null) {
+            musicService.stop();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (musicService != null) {
+            musicService.resume();
+        }
     }
 }

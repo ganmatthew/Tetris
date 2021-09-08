@@ -22,6 +22,7 @@
     <color name="leaderboard_item_color">#BF303340</color> <!--Note the first two digits are alpha (transparency) in hex-->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="board_score_color">#536DFE</color>
 
     <color name="tetromino_red">#D70F37</color>
     <color name="tetromino_orange">#E35B02</color>

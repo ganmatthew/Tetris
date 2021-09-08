@@ -33,20 +33,18 @@ enum Rotation{
 
 public class Tetromino {
     private static final int OFFSET_DATA_JLSTZ_X[][] = {
-            {0,0,0,0,0},
-            {0,1,1,0,1},
-            {0,0,0,0,0},
-            {0,-1,-1,0,-1}
+        {0,0,0,0,0},
+        {0,1,1,0,1},
+        {0,0,0,0,0},
+        {0,-1,-1,0,-1}
     };
 
     private static final int OFFSET_DATA_JLSTZ_Y[][] = {
-            {0,0,0,0,0},
-            {0,0,-1,2,2},
-            {0,0,0,0,0},
-            {0,0,-1,2,2}
+        {0,0,0,0,0},
+        {0,0,-1,2,2},
+        {0,0,0,0,0},
+        {0,0,-1,2,2}
     };
-
-
 
     private Shape shape;
     private int dataX[][];
@@ -112,18 +110,18 @@ public class Tetromino {
     public boolean MoveTetromino(Direction direction){
         boolean rt_value = true;
 
-        int curr_data[][] = GameActivity.getGameData();
+        int currData[][] = GameActivity.getGameData();
 
         //erase the data in curr_data..
         for (int i = 0; i < 4; i++){
-            curr_data[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
+            currData[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
         }
 
         switch(direction){
             case DOWN:
                 addYOffset(1);
                 for (int i = 0; i < 4; i++){
-                    if (dataY[pos][i] > 19 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
+                    if (dataY[pos][i] > 19 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
                         addYOffset(-1);
                         rt_value = false;
                     }
@@ -133,7 +131,7 @@ public class Tetromino {
             case RIGHT:
                 addXOffset(1);
                 for (int i = 0; i < 4; i++){
-                    if (dataX[pos][i] > 9 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
+                    if (dataX[pos][i] > 9 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
                         addXOffset(-1);
                         rt_value = false;
                     }
@@ -143,7 +141,7 @@ public class Tetromino {
             case LEFT:
                 addXOffset(-1);
                 for (int i = 0; i < 4; i++){
-                    if (dataX[pos][i] < 0 || curr_data[dataY[pos][i]][dataX[pos][i]] != 0){
+                    if (dataX[pos][i] < 0 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
                         addXOffset(1);
                         rt_value = false;
                     }
@@ -152,7 +150,7 @@ public class Tetromino {
         }
 
         for (int i = 0; i < 4; i++){
-            curr_data[dataY[pos][i]][dataX[pos][i]] = shape.ordinal(); //empty shape
+            currData[dataY[pos][i]][dataX[pos][i]] = shape.ordinal(); //empty shape
         }
 
         return rt_value;

@@ -1,6 +1,5 @@
 package com.mobdeve.s12.group9.tetris;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,7 +9,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -45,7 +43,7 @@ public class _GameView extends View {
         super(context);
 
         // Get the ConstraintLayout to draw on later
-        this.clBoardLayout = findViewById(R.id.cl_board_layout);
+        this.clBoardLayout = findViewById(R.id.cl_board_grid);
 
         // Get display metrics from MainActivity
         /*

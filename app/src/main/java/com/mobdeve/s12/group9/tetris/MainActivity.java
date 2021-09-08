@@ -3,13 +3,11 @@ package com.mobdeve.s12.group9.tetris;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,14 +15,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
-import java.io.IOException;
-
 public class MainActivity extends AppCompatActivity {
-    // Debugging tags
-    private static final String MUSIC_TAG = "Music";
-
-    // Game components
-    private MediaPlayer mPlayer = new MediaPlayer();
 
     // Main menu view components
     private ConstraintLayout clOverlay;
@@ -37,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private View settingsView;
     private View leaderView;
 
+    private MusicService musicService;
+
     // Settings view components
     private SharedPreferences sp;
     private SharedPreferences.Editor spEditor;
@@ -44,10 +37,6 @@ public class MainActivity extends AppCompatActivity {
     private double touchSensitivity = 0.5;
     private boolean musicEnabled = true;
     private boolean soundsEnabled = true;
-
-    // References to the music tracks
-    String musicStart = String.valueOf(R.raw.tetris_remix_start);
-    String musicLoop = String.valueOf(R.raw.tetris_remix_loop);
 
     /***
      * Activity listeners
@@ -70,8 +59,9 @@ public class MainActivity extends AppCompatActivity {
         this.llModes = findViewById(R.id.ll_menu_modes);
         this.clOverlay = findViewById(R.id.cl_menu_overlay_container);
 
-        // Plays the Tetris theme
-        musicStart();
+        // Start MusicService, plays the Tetris theme
+        musicService = new MusicService(MainActivity.this);
+        musicService.start();
 
         // Listen to menu buttons
         bindToPlayButton();
@@ -143,98 +133,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /***
-     * Music control
-     */
-
-    private void setMusicTrack(String trackId, boolean isLooping) {
-        // Create path to music track in raw folder
-        Uri mediaPath = Uri.parse("android.resource://" + this.getPackageName() + "/" + trackId);
-        try {
-            mPlayer.setDataSource(getApplicationContext(), mediaPath);
-            mPlayer.setLooping(isLooping);
-            mPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void nextMusicTrack(String nextTrackId, boolean nextIsLooping) {
-        mPlayer.stop();
-        mPlayer.reset();
-        setMusicTrack(nextTrackId, nextIsLooping);
-        mPlayer.start();
-    }
-
-    // Plays the start track of the music and transitions into the loop track
-    public void musicStart() {
-        // Set the loop track to play indefinitely after the start track ends
-        mPlayer.setOnCompletionListener(mp -> {
-            nextMusicTrack(musicLoop, true);
-            Log.d(MUSIC_TAG, "\nPlaying loop of Tetris theme\n");
-        });
-
-        // Plays the start track
-        setMusicTrack(musicStart, false);
-        mPlayer.start();
-        Log.d(MUSIC_TAG, "\nPlaying start of Tetris theme\n");
-    }
-
-    // Pauses any music track in the MediaPlayer
-    public void musicPause() {
-        if (mPlayer.isPlaying()) {
-            mPlayer.pause();
-            Log.d(MUSIC_TAG, "\nPaused the Tetris theme\n");
-        }
-    }
-
-    // Resumes any track in the MediaPlayer
-    public void musicResume() {
-        if (!mPlayer.isPlaying()) {
-            // Continue where it left off
-            int trackPos = mPlayer.getCurrentPosition();
-            mPlayer.seekTo(trackPos);
-            mPlayer.start();
-            Log.d(MUSIC_TAG, "\nContinued the Tetris theme\n");
-        }
-    }
-
-    // Stops any music track, plays the end track, and resets the MediaPlayer
-    public void musicStop() {
-        if (mPlayer != null) {
-            mPlayer.stop();
-            mPlayer.release();
-            mPlayer = null;
-            Log.d(MUSIC_TAG, "\nStopped the Tetris theme\n");
-
-        }
-    }
-
-    /***
      * Life cycle
      */
 
     @Override
     protected void onPause() {
         super.onPause();
-        musicPause();
+        if (musicService != null) {
+            musicService.pause();
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        musicPause();
+        if (musicService != null) {
+            musicService.pause();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        musicStop();
+        if (musicService != null) {
+            musicService.stop();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        musicResume();
+        if (musicService != null) {
+            musicService.resume();
+        }
     }
 
 }
