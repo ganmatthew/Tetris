@@ -23,12 +23,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="tetromino_red">#EF2029</color>
-    <color name="tetromino_orange">#EF7921</color>
-    <color name="tetromino_yellow">#F7D308</color>
-    <color name="tetromino_green">#42B642</color>
-    <color name="tetromino_cyan">#31C7EF</color>
-    <color name="tetromino_blue">#5A65AD</color>
-    <color name="tetromino_magenta">#AD4D9C</color>
-    <color name="tetromino_black">#000123</color>
+    <color name="tetromino_red">#D70F37</color>
+    <color name="tetromino_orange">#E35B02</color>
+    <color name="tetromino_yellow">#E39F02</color>
+    <color name="tetromino_green">#59B101</color>
+    <color name="tetromino_cyan">#0F9BD7</color>
+    <color name="tetromino_blue">#2141C6</color>
+    <color name="tetromino_magenta">#AF298A</color>
+    <color name="tetromino_black">#0C0C1E</color>
 </resources>
