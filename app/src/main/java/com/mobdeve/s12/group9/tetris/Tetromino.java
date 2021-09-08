@@ -1,5 +1,7 @@
 package com.mobdeve.s12.group9.tetris;
 
+import java.util.stream.IntStream;
+
 enum Shape {
     EMPTY_SHAPE,
     I_SHAPE,
@@ -24,7 +26,28 @@ enum Orientation {
     WEST
 }
 
+enum Rotation{
+    CLOCKWISE,
+    ANTICLOCKWISE
+}
+
 public class Tetromino {
+    private static final int OFFSET_DATA_JLSTZ_X[][] = {
+            {0,0,0,0,0},
+            {0,1,1,0,1},
+            {0,0,0,0,0},
+            {0,-1,-1,0,-1}
+    };
+
+    private static final int OFFSET_DATA_JLSTZ_Y[][] = {
+            {0,0,0,0,0},
+            {0,0,-1,2,2},
+            {0,0,0,0,0},
+            {0,0,-1,2,2}
+    };
+
+
+
     private Shape shape;
     private int dataX[][];
     private int dataY[][];
@@ -135,6 +158,55 @@ public class Tetromino {
         return rt_value;
     }
 
+    //left is 90* acw, right is 90 cw
+    public void Rotate(Rotation r){
+
+
+        boolean success_rotation = false;
+
+        int curr_pos = pos;
+        int target_pos = pos;
+
+        int offset_data_curr_pos_x;
+        int offset_data_target_pos_x;
+
+        int offset_data_curr_pos_y;
+        int offset_data_target_pos_y;
+
+        int curr_data[][] = GameActivity.getGameData();
+        //erase the data in curr_data..
+        for (int i = 0; i < 4; i++){
+            curr_data[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
+        }
+
+        switch(r){
+            case CLOCKWISE:
+                if (curr_pos == 3) {target_pos = 0;} else {target_pos++;};
+
+                switch(shape){
+                    case J_SHAPE:
+                    case L_SHAPE:
+                    case S_SHAPE:
+                    case Z_SHAPE:
+                    case T_SHAPE:
+
+
+
+
+                        break;
+                }
+
+                break;
+            case ANTICLOCKWISE:
+                if (curr_pos == 0) {target_pos = 3;} else {target_pos--;};
+                break;
+        }
+
+
+
+
+    }
+
     public Tetromino(Shape shape) {
         this.pos = 0;
         this.shape = shape;
@@ -169,4 +241,6 @@ public class Tetromino {
                 break;
         }
     }
+
+
 }

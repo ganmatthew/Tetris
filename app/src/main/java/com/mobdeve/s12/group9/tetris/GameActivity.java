@@ -98,12 +98,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         Touch gesture listeners
      */
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (this.mDetector.onTouchEvent(event)) {
-            return true;
-        }
         return super.onTouchEvent(event);
     }
 
