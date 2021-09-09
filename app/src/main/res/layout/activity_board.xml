@@ -8,94 +8,142 @@
     android:background="@color/board_color"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/tv_board_score"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_score_area"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:fontFamily="@font/rubik_bold"
-        android:letterSpacing=".2"
-        android:text="@string/board_score_sprint"
-        android:textAlignment="center"
-        android:textAllCaps="true"
-        android:textColor="@color/board_score_color"
-        android:textSize="20sp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/tv_board_score_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/rubik_medium"
-        android:text="@string/board_score_default_value"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="60sp"
-        app:layout_constraintEnd_toEndOf="@+id/tv_board_score"
-        app:layout_constraintStart_toStartOf="@+id/tv_board_score"
-        app:layout_constraintTop_toBottomOf="@+id/tv_board_score" />
+        <ImageButton
+            android:id="@+id/btn_board_pause"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/rounded_button"
+            android:backgroundTint="@color/button_pause"
+            android:elevation="2dp"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tv_board_score"
+            app:srcCompat="@drawable/custom_close_icon" />
 
-    <LinearLayout
-        android:id="@+id/ll_game_area"
+        <TextView
+            android:id="@+id/tv_board_score_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/rubik_medium"
+            android:text="@string/board_score_default_value"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="60sp"
+            app:layout_constraintEnd_toEndOf="@+id/tv_board_score"
+            app:layout_constraintStart_toStartOf="@+id/tv_board_score"
+            app:layout_constraintTop_toBottomOf="@+id/tv_board_score" />
+
+        <TextView
+            android:id="@+id/tv_board_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/rubik_bold"
+            android:letterSpacing=".2"
+            android:text="@string/board_score_sprint"
+            android:textAlignment="center"
+            android:textAllCaps="true"
+            android:textColor="@color/board_score_color"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_game_area"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
         android:baselineAligned="false"
-        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_board_score_value">
+        app:layout_constraintTop_toBottomOf="@+id/cl_score_area"
+        app:layout_constraintVertical_bias="0.0">
+
+        <TextView
+            android:id="@+id/tv_board_hold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/rubik_bold"
+            android:gravity="center"
+            android:letterSpacing=".1"
+            android:text="@string/board_hold"
+            android:textAlignment="center"
+            android:textAllCaps="true"
+            android:textColor="@color/board_border_color"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@+id/cl_board_hold"
+            app:layout_constraintStart_toStartOf="@+id/cl_board_hold"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tv_board_next"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="64dp"
+            android:fontFamily="@font/rubik_bold"
+            android:gravity="center"
+            android:letterSpacing=".1"
+            android:text="@string/board_next"
+            android:textAlignment="center"
+            android:textAllCaps="true"
+            android:textColor="@color/board_border_color"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@+id/cl_board_next"
+            app:layout_constraintStart_toStartOf="@+id/cl_board_next"
+            app:layout_constraintTop_toBottomOf="@+id/cl_board_hold" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/cl_left"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/cl_board_grid"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            android:id="@+id/cl_board_grid"
+            android:layout_width="235dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/cl_right"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
+            android:id="@+id/cl_board_hold"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/cl_board_grid"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/cl_board_next"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="@id/cl_board_hold"
-                app:layout_constraintTop_toBottomOf="@id/cl_board_hold">
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/cl_board_hold"
-                android:layout_width="0dp"
-                android:layout_height="120dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_board_hold">
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </LinearLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cl_board_next"
+            android:layout_width="0dp"
+            android:layout_height="270dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintEnd_toEndOf="@+id/cl_board_hold"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/cl_board_hold"
+            app:layout_constraintTop_toBottomOf="@+id/tv_board_next">
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

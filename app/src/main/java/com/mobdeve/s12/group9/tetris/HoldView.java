@@ -3,6 +3,7 @@ package com.mobdeve.s12.group9.tetris;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.View;
 
 public class HoldView extends View {
@@ -15,16 +16,18 @@ public class HoldView extends View {
 
         block_painter = new Paint();
         frame_painter = new Paint();
+
         this.helper = helper;
     }
 
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        helper.drawHoldBorders(canvas, frame_painter);
+        helper.drawHoldBorders(canvas, frame_painter, HoldView.this);
 
         if (GameActivity.getGameState() != GameState.END){
             helper.drawHoldPieces(canvas, block_painter, HoldView.this);
         }
     }
+
 }

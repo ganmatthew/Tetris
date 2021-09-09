@@ -21,7 +21,7 @@ public class GridView extends View {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        helper.drawGridBorders(canvas, frame_painter);
+        helper.drawGridBorders(canvas, frame_painter, GridView.this);
 
         if (GameActivity.getGameState() != GameState.END){
             helper.drawGridPieces(canvas, block_painter, GridView.this);

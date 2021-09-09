@@ -20,4 +20,6 @@
     <string name="board_score_marathon">Time Remaining</string>
     <string name="board_score_endless">Lines Cleared</string>
     <string name="board_score_default_value">40</string>
+    <string name="board_hold">Hold</string>
+    <string name="board_next">Next</string>
 </resources>

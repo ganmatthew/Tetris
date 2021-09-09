@@ -179,7 +179,7 @@ public class Tetromino {
 
         switch(r){
             case CLOCKWISE:
-                if (curr_pos == 3) {target_pos = 0;} else {target_pos++;};
+                if (curr_pos == 3) { target_pos = 0; } else { target_pos++;};
 
                 switch(shape){
                     case J_SHAPE:
@@ -196,7 +196,7 @@ public class Tetromino {
 
                 break;
             case ANTICLOCKWISE:
-                if (curr_pos == 0) {target_pos = 3;} else {target_pos--;};
+                if (curr_pos == 0) { target_pos = 3; } else { target_pos--; };
                 break;
         }
 

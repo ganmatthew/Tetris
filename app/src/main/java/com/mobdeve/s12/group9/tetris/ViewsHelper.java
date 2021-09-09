@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 
 import java.util.List;
@@ -97,8 +99,8 @@ public class ViewsHelper {
 
         hold_left_offset =                      board_left_offset;
         hold_top_offset =                       board_top_offset;
-        hold_right_offset =                     hold_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
-        hold_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_left_offset;
+        hold_right_offset =                     hold_left_offset + (GameActivity.NUM_BLOCKSIZE * 4) - 35;
+        hold_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_left_offset - 35;
 
         /*
         next_left_offset =                      hold_left_offset;
@@ -109,8 +111,8 @@ public class ViewsHelper {
 
         next_left_offset =                      hold_left_offset;
         next_top_offset =                       hold_top_offset;
-        next_right_offset =                     next_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
-        next_bottom_offset =                    ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET);
+        next_right_offset =                     next_left_offset + (GameActivity.NUM_BLOCKSIZE * 4) - 35;
+        next_bottom_offset =                    (float) ((GameActivity.NUM_BLOCKSIZE * 16) * 0.7 + 10);
 
         board_frame_left_offset =               (float) (board_left_offset - 5.5);
         board_frame_top_offset =                (float) (board_top_offset - 5.6);
@@ -141,34 +143,36 @@ public class ViewsHelper {
      * Drawing of borders
      */
 
-    public void drawGridBorders(Canvas canvas, Paint frame_painter) {
-        drawBorders(canvas, frame_painter,
+    public void drawGridBorders(Canvas canvas, Paint frame_painter, View view) {
+        drawBorders(canvas, frame_painter, view,
             board_frame_left_offset, board_frame_top_offset,
-            board_frame_right_offset, board_frame_bottom_offset
+            board_frame_right_offset, board_frame_bottom_offset, "GRID"
         );
     }
 
-    public void drawHoldBorders(Canvas canvas, Paint frame_painter) {
-        drawBorders(canvas, frame_painter,
-                hold_frame_left_offset, hold_frame_top_offset,
-                hold_frame_right_offset, hold_frame_bottom_offset
+    public void drawHoldBorders(Canvas canvas, Paint frame_painter,  View view) {
+        drawBorders(canvas, frame_painter, view,
+            hold_frame_left_offset, hold_frame_top_offset,
+            hold_frame_right_offset, hold_frame_bottom_offset, "HOLD"
         );
     }
 
-    public void drawNextBorders(Canvas canvas, Paint frame_painter) {
-        drawBorders(canvas, frame_painter,
-                next_frame_left_offset, next_frame_top_offset,
-                next_frame_right_offset, next_frame_bottom_offset
+    public void drawNextBorders(Canvas canvas, Paint frame_painter,  View view) {
+        drawBorders(canvas, frame_painter, view,
+            next_frame_left_offset, next_frame_top_offset,
+            next_frame_right_offset, next_frame_bottom_offset, "NEXT"
         );
     }
 
-    private void drawBorders(Canvas canvas, Paint frame_painter,
-                            float left, float top, float right, float bottom) {
+    private void drawBorders(Canvas canvas, Paint frame_painter, View view,
+                            float left, float top, float right, float bottom, String name) {
         frame_painter.setStrokeWidth(10);
         frame_painter.setStyle(Paint.Style.STROKE);
-        frame_painter.setColor(Color.GRAY);
+        frame_painter.setColor(getColor(view, R.color.board_border_color));
 
-        canvas.drawRect(left, top, right, bottom, frame_painter);
+        Rect rect = new Rect( (int) left, (int) top, (int) right, (int) bottom );
+        canvas.drawRect(rect, frame_painter);
+        Log.d("HOLDTAG", String.format("width: %d\theight: %d\t\tparent: %s", rect.width(), rect.height(), name));
     }
 
     /**
@@ -200,7 +204,7 @@ public class ViewsHelper {
 
             drawPieces(canvas, block_painter, view,
                 temp, 4, 4,
-                hold_left_offset, hold_top_offset, 20, 40, 70
+                hold_left_offset, hold_top_offset, 20, 40, 50
             );
         }
     }
@@ -231,7 +235,7 @@ public class ViewsHelper {
 
         drawPieces(canvas, block_painter, view,
             temp, 16, 4,
-            next_left_offset, next_top_offset, 20, 80, 70
+            next_left_offset, next_top_offset, 40, 80, 50
         );
     }
 
@@ -285,3 +289,4 @@ public class ViewsHelper {
     // Returns the ColorInt for a given resource color ID
     private int getColor(View view, int colorId) { return view.getResources().getColor(colorId); }
 }
+

@@ -21,7 +21,7 @@ public class NextView extends View {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        helper.drawNextBorders(canvas, frame_painter);
+        helper.drawNextBorders(canvas, frame_painter, NextView.this);
 
         if (GameActivity.getGameState() != GameState.END){
             helper.drawNextPieces(canvas, block_painter, NextView.this);

@@ -11,7 +11,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public static final int GAME_OFFSET = 10;
 
     // Game activity parameters
-    public static int DELAY = 1000;
+    public static final int DELAY_NORMAL = 1000;
+    public static final int DELAY_FAST = 100;
+    public static int delay = DELAY_NORMAL;
 
     // Grid components
     private static GameState gameState;
@@ -103,6 +104,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         clGridLayout.addView(gridView, 0);
 
         clHoldLayout = findViewById(R.id.cl_board_hold);
+
         clHoldLayout.addView(holdView, 0);
 
         clNextLayout = findViewById(R.id.cl_board_next);
@@ -121,6 +123,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (this.mDetector.onTouchEvent(event)) { return true; }
         return super.onTouchEvent(event);
     }
 
@@ -164,8 +167,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
         if (angle < -45 && angle >= -135) {
-            Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
-            DELAY = 100;
+            Log.d(GESTURE_TAG, "\nScroll gesture from UP to DOWN\n");
+            delay = DELAY_FAST;
             return true;
         }
         return false;
@@ -193,7 +196,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         if (angle < -45 && angle >= -135) {
             Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
-            DELAY = 1000;
+
             return true;
         }
 
@@ -224,11 +227,11 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         populatePieceBag();
                         populatePieceBag();
                         gameState = GameState.SPAWN;
-                        DELAY = 100;
+                        delay = DELAY_FAST;
                         break;
 
                     case SPAWN:
-                        DELAY = 1000;
+                        delay = DELAY_NORMAL;
                         gameState = !SpawnTetromino() ? GameState.END : GameState.FALL;
                         usedHold = false;
                         break;
@@ -237,6 +240,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         if(!fallingTetromino.MoveTetromino(Direction.DOWN)) counter++;
 
                         if (counter > 2){
+                            // Resets the delay speed after the down gesture
+                            if (delay == DELAY_FAST) { delay = DELAY_NORMAL; }
+
                             if(SpawnTetromino()){
                                 counter = 1;
                                 usedHold = false;
@@ -259,7 +265,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                 nextView.invalidate();
 
                 //Toast.makeText(GameActivity.this, "delay testing", Toast.LENGTH_SHORT).show();
-                handler.postDelayed(this, DELAY);
+                handler.postDelayed(this, delay);
             }
         };
 
@@ -344,14 +350,15 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         return true;
     }
 
+    // Places the falling Tetromino into hold
     public void swapTetromino(){
         if (!usedHold){
             Shape temp;
-
+            // Gets the falling Tetromino and removes it from the grid
             for (int i = 0; i < 4; i++){
                 blockData[fallingTetromino.getDataY()[fallingTetromino.getPos()][i]][fallingTetromino.getDataX()[fallingTetromino.getPos()][i]] = 0; //empty shape
             }
-
+            // Places the Tetromino into hold
             if (holdTetromino != Shape.EMPTY_SHAPE){
                 temp = holdTetromino;
                 holdTetromino = fallingTetromino.getShape();
@@ -359,12 +366,11 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
                 if (fallingTetromino.getShape() == Shape.O_SHAPE){
                     fallingTetromino.addXOffset(4);
-                }
-                else{
+                } else{
                     fallingTetromino.addXOffset(3);
                 }
-            }
-            else{
+            } else{
+                // Removes the Tetromino from hold and sets it to spawn again
                 holdTetromino = fallingTetromino.getShape();
                 SpawnTetromino();
             }
