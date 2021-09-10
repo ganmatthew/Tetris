@@ -90,24 +90,10 @@ public class ViewsHelper {
         board_right_offset =                    ( (GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_WIDTH) + GameActivity.GAME_OFFSET );
         board_bottom_offset =                   ( (GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET );
 
-        /*
-        hold_left_offset =                      board_right_offset + 30;
-        hold_top_offset =                       board_top_offset;
-        hold_right_offset =                     hold_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
-        hold_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_top_offset;
-        */
-
         hold_left_offset =                      board_left_offset;
         hold_top_offset =                       board_top_offset;
         hold_right_offset =                     hold_left_offset + (GameActivity.NUM_BLOCKSIZE * 4) - 35;
         hold_bottom_offset =                    (GameActivity.NUM_BLOCKSIZE * 4) + board_left_offset - 35;
-
-        /*
-        next_left_offset =                      hold_left_offset;
-        next_top_offset =                       hold_bottom_offset + 30;
-        next_right_offset =                     next_left_offset + (GameActivity.NUM_BLOCKSIZE * 4);
-        next_bottom_offset =                    ((GameActivity.NUM_BLOCKSIZE * GameActivity.NUM_HEIGHT) + GameActivity.GAME_OFFSET);
-        */
 
         next_left_offset =                      hold_left_offset;
         next_top_offset =                       hold_top_offset;

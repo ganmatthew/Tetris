@@ -83,10 +83,20 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Binds a given view to a button
+    /**
+     * Binds a given view to respective open and close buttons
+     * @param viewRes the View that will be opened/closed
+     * @param closeButtonRes Res to the Button to close the View
+     * @param openButton Res to the ImageButton to open the View
+     * @return Returns the view that was opened
+     */
     private View bindViewToButton(int viewRes, int closeButtonRes, ImageButton openButton) {
         LayoutInflater inflater = MainActivity.this.getLayoutInflater();
         View view = inflater.inflate(viewRes, null);
+        view.setLayoutParams(new ConstraintLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT)
+        );
 
         openButton.setOnClickListener(v -> {
             if (view.getParent() == null)
@@ -94,10 +104,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ImageButton closeButton = view.findViewById(closeButtonRes);
-        view.setLayoutParams(new ConstraintLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT)
-        );
 
         closeButton.setOnClickListener(v -> {
             if (view.getParent() != null)
@@ -107,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         return view;
     }
 
+    /**
+     *  Forces the app into immersive fullscreen
+     */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if (hasFocus) {
@@ -121,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Overrides the back button to close the settings/leaderboard view
+     */
     @Override
     public void onBackPressed() {
         if (this.settingsView.getParent() != null) {

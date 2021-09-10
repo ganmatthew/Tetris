@@ -107,53 +107,54 @@ public class Tetromino {
         return value;
     }
 
-    public boolean MoveTetromino(Direction direction){
-        boolean rt_value = true;
+    public boolean MoveTetromino(Direction direction, boolean isMoving){
+        if (!isMoving) {
+            isMoving = true;
+            int currData[][] = GameActivity.getGameData();
 
-        int currData[][] = GameActivity.getGameData();
+            //erase the data in curr_data..
+            for (int i = 0; i < 4; i++){
+                currData[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
+            }
 
-        //erase the data in curr_data..
-        for (int i = 0; i < 4; i++){
-            currData[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
+            switch(direction){
+                case DOWN:
+                    addYOffset(1);
+                    for (int i = 0; i < 4; i++){
+                        if (dataY[pos][i] > 19 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
+                            addYOffset(-1);
+                            isMoving = false;
+                        }
+                    }
+                    break;
+
+                case RIGHT:
+                    addXOffset(1);
+                    for (int i = 0; i < 4; i++){
+                        if (dataX[pos][i] > 9 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
+                            addXOffset(-1);
+                            isMoving = false;
+                        }
+                    }
+                    break;
+
+                case LEFT:
+                    addXOffset(-1);
+                    for (int i = 0; i < 4; i++){
+                        if (dataX[pos][i] < 0 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
+                            addXOffset(1);
+                            isMoving = false;
+                        }
+                    }
+                    break;
+            }
+
+            for (int i = 0; i < 4; i++){
+                currData[dataY[pos][i]][dataX[pos][i]] = shape.ordinal(); //empty shape
+            }
         }
 
-        switch(direction){
-            case DOWN:
-                addYOffset(1);
-                for (int i = 0; i < 4; i++){
-                    if (dataY[pos][i] > 19 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
-                        addYOffset(-1);
-                        rt_value = false;
-                    }
-                }
-                break;
-
-            case RIGHT:
-                addXOffset(1);
-                for (int i = 0; i < 4; i++){
-                    if (dataX[pos][i] > 9 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
-                        addXOffset(-1);
-                        rt_value = false;
-                    }
-                }
-                break;
-
-            case LEFT:
-                addXOffset(-1);
-                for (int i = 0; i < 4; i++){
-                    if (dataX[pos][i] < 0 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
-                        addXOffset(1);
-                        rt_value = false;
-                    }
-                }
-                break;
-        }
-
-        for (int i = 0; i < 4; i++){
-            currData[dataY[pos][i]][dataX[pos][i]] = shape.ordinal(); //empty shape
-        }
-
-        return rt_value;
+        return isMoving;
     }
 
     //left is 90* acw, right is 90 cw

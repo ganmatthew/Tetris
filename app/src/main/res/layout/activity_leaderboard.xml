@@ -10,7 +10,7 @@
         android:id="@+id/cl_leaderboard"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/settings_outside_color"
+        android:background="@color/popup_outside_color"
         android:clickable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

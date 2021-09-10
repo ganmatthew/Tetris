@@ -22,4 +22,8 @@
     <string name="board_score_default_value">40</string>
     <string name="board_hold">Hold</string>
     <string name="board_next">Next</string>
+    <string name="pause_menu_header">Game Paused</string>
+    <string name="pause_menu_resume">Resume</string>
+    <string name="pause_menu_settings">Settings</string>
+    <string name="pause_menu_exit">Save and Exit</string>
 </resources>

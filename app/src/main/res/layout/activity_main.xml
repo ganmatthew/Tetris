@@ -14,7 +14,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/tetrisiconbackground" />
+        app:srcCompat="@drawable/tetris_icon_background" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_menu_overlay_container"

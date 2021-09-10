@@ -7,25 +7,25 @@
     <color name="button_marathon">#A31800</color>
     <color name="button_endless">#0057A3</color>
 
-    <color name="button_black">#323546</color>
-    <color name="button_black_ripple">#70758F</color>
+    <color name="button_black">#1A1D29</color>
+    <color name="button_dark">#323546</color>
+    <color name="button_dark_ripple">#70758F</color>
     <color name="button_slider_thumb">#ECECEC</color>
     <color name="button_slider_tick">#3D4155</color>
     <color name="button_slider_track">#2D303F</color>
     <color name="button_close">#BB1F1F</color>
     <color name="button_pause">#1F6ABB</color>
 
-    <color name="settings_outside_color">#B23D4155</color> <!--Note the first two digits are alpha (transparency) in hex-->
-    <color name="settings_background_color">#3D4155</color>
+    <color name="popup_outside_color">#CC313440</color> <!--Note the first two digits are alpha (transparency) in hex-->
+    <color name="popup_background_color">#3D4155</color>
     <color name="menu_background_color">#151E2C</color>
     <color name="board_color">#2B2F47</color>
 
     <color name="leaderboard_item_color">#BF303340</color> <!--Note the first two digits are alpha (transparency) in hex-->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="board_border_color">#6C6C6C</color>
+    <color name="board_border_color">#9494A8</color>
     <color name="board_score_color">#536DFE</color>
-    <color name="board_side_title_color">#7C7C91</color>
 
     <color name="tetromino_red">#D70F37</color>
     <color name="tetromino_orange">#E35B02</color>

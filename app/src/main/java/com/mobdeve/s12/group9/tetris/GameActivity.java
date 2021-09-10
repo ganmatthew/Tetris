@@ -10,7 +10,12 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +31,13 @@ enum GameState {
 }
 
 public class GameActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
+    // Debugging tags
     private static final String GESTURE_TAG = "Gestures";
 
     // Grid size parameters
     public static final int NUM_HEIGHT = 20;
     public static final int NUM_WIDTH = 10;
     public static final int NUM_BLOCKSIZE = 80;
-    //public static final int GAME_OFFSET = 100;
     public static final int GAME_OFFSET = 10;
 
     // Game activity parameters
@@ -49,11 +54,14 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private static Shape holdTetromino;
 
     // Game components
+    private MusicService musicService;
     private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
     private ViewsHelper helper;
     private Handler handler;
     private Runnable loop;
+
+    private boolean pauseInvoked;
     private boolean usedHold;
 
     // Layout components
@@ -65,7 +73,18 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private HoldView holdView;
     private NextView nextView;
 
-    private MusicService musicService;
+    private ImageButton btnPause;
+    private ImageButton btnHelp;
+
+    // Pause menu and Settings menu components
+    private ConstraintLayout clOverlay;
+
+    private View pauseView;
+    private View settingsView;
+
+    private Button btnResume;
+    private Button btnSettings;
+    private Button btnExit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +119,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         setContentView(R.layout.activity_board);
 
+        clOverlay = findViewById(R.id.cl_board_overlay_container);
+
         clGridLayout = findViewById(R.id.cl_board_grid);
         clGridLayout.addView(gridView, 0);
 
@@ -110,12 +131,28 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         clNextLayout = findViewById(R.id.cl_board_next);
         clNextLayout.addView(nextView, 0);
 
+        btnPause = findViewById(R.id.btn_board_pause);
+
         // Start MusicService, plays the Tetris theme
         musicService = new MusicService(GameActivity.this);
         musicService.start();
 
+        // Listen for pause button events
+        pauseView = pauseGame(btnPause);
+
+        pauseInvoked = false;
         startGame();
     }
+
+    /*
+        Button listeners
+     */
+
+    /**
+     * Overrides the back button to pause the game
+     */
+    @Override
+    public void onBackPressed() { pauseGame(null); }
 
     /*
         Touch gesture listeners
@@ -130,6 +167,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) { return false; }
 
+    /**
+     * Handles double tap events, used for rotation gestures.
+     * @return true if double tap is on the left or right side, false if otherwise
+     */
     @Override
     public boolean onDoubleTap(MotionEvent e) {
         // Get the median x-coordinate of the display
@@ -138,15 +179,14 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         // Listen for double tap actions on either side
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
             float fingerPosition = e.getX();
-            if(fingerPosition < medianLine) {
+            if (fingerPosition < medianLine) {
                 Log.d(GESTURE_TAG, "\nDouble tap on LEFT SIDE\n");
             } else {
                 Log.d(GESTURE_TAG, "\nDouble tap on RIGHT SIDE\n");
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override
@@ -161,15 +201,44 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onSingleTapUp(MotionEvent e) { return false; }
 
-    //on scroll is called on the motion, onfling is called after the motion.
+    // Stores the starting points for the scroll gesture to throttle it
+    private float scrollStartX1;
+    private float scrollStartY1;
 
+    /**
+     * Handles scrolling events called on the motion, used for the four directional gestures.
+     * @return true if scroll direction is north, south, east, or west, false if otherwise
+     */
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
-        if (angle < -45 && angle >= -135) {
-            Log.d(GESTURE_TAG, "\nScroll gesture from UP to DOWN\n");
-            delay = DELAY_FAST;
-            return true;
+        if (scrollStartX1 != e1.getX() || scrollStartY1 != e1.getY()) {
+            scrollStartX1 = e1.getX();
+            scrollStartY1 = e1.getY();
+
+            float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
+            if (angle < -45 && angle >= -135) {
+                Log.d(GESTURE_TAG, "\nScroll DOWN, move Tetromino faster\n");
+                delay = DELAY_FAST;
+                return true;
+            }
+
+            if (angle > 45 && angle <= 135) {
+                Log.d(GESTURE_TAG, "\nScroll UP, move Tetromino to hold or back from hold\n");
+                swapTetromino();
+                return true;
+            }
+
+            if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
+                Log.d(GESTURE_TAG, "\nScroll LEFT, move Tetromino left\n");
+                fallingTetromino.MoveTetromino(Direction.LEFT, false);
+                return true;
+            }
+
+            if (angle > -45 && angle <= 45) {
+                Log.d(GESTURE_TAG, "\nScroll RIGHT, move Tetromino right\n");
+                fallingTetromino.MoveTetromino(Direction.RIGHT, false);
+                return true;
+            }
         }
         return false;
     }
@@ -178,50 +247,22 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public void onLongPress(MotionEvent e) {}
 
     @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        // Get swipe direction based on delta of x and y coordinates
-        float angle = (float) Math.toDegrees(Math.atan2(e1.getY() - e2.getY(), e2.getX() - e1.getX()));
-
-        if (angle > -45 && angle <= 45) {
-            Log.d(GESTURE_TAG, "\nFling from LEFT to RIGHT\n");
-            fallingTetromino.MoveTetromino(Direction.RIGHT);
-            return true;
-        }
-
-        if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
-            Log.d(GESTURE_TAG, "\nFling from RIGHT to LEFT\n");
-            fallingTetromino.MoveTetromino(Direction.LEFT);
-            return true;
-        }
-
-        if (angle < -45 && angle >= -135) {
-            Log.d(GESTURE_TAG, "\nFling from UP to DOWN\n");
-
-            return true;
-        }
-
-        if (angle > 45 && angle <= 135) {
-            Log.d(GESTURE_TAG, "\nFling from DOWN to UP\n");
-            swapTetromino();
-            return true;
-        }
-
-        return false;
-    }
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) { return false; }
 
     /*
         Game board modifiers
      */
 
+    /**
+     * Starts the main thread for the game's cycle
+     */
     public void startGame(){
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         handler = new Handler(Looper.getMainLooper());
         loop = new Runnable() {
             int counter = 1;
-
             @Override
             public void run() {
-
                 switch (gameState){
                     case NEW:
                         populatePieceBag();
@@ -237,7 +278,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         break;
 
                     case FALL:
-                        if(!fallingTetromino.MoveTetromino(Direction.DOWN)) counter++;
+                        if(!fallingTetromino.MoveTetromino(Direction.DOWN, false)) counter++;
 
                         if (counter > 2){
                             // Resets the delay speed after the down gesture
@@ -255,7 +296,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
                     case END:
                         blockData = new int[][]{{0}};
-                        handler.removeCallbacksAndMessages(this);
+                        pauseGame(null);
                         break;
 
                 }
@@ -264,6 +305,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                 holdView.invalidate();
                 nextView.invalidate();
 
+                // Sets how frequent each loop will run
                 //Toast.makeText(GameActivity.this, "delay testing", Toast.LENGTH_SHORT).show();
                 handler.postDelayed(this, delay);
             }
@@ -273,12 +315,94 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         //Toast.makeText(GameActivity.this, "loop done", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Stops the main thread of the game and opens the pause menu
+     */
+    private void pause(View view) {
+        // Pause only if the pause menu is not inflated
+        if (view.getParent() == null) {
+            // Stops the thread
+            pauseInvoked = true;
+            handler.removeCallbacksAndMessages(null);
+            // Inflate pause menu
+            clOverlay.addView(view);
+        }
+    }
+
+    /**
+     * Restarts the main thread of the game and closes the menu if present
+     */
+    private void resume() {
+        // Resume game
+        if (pauseInvoked) { startGame(); }
+        // Deflate pause menu
+        if (pauseView != null) {
+            if (pauseView.getParent() != null) { clOverlay.removeView(pauseView); }
+        }
+    }
+
+    /**
+     * Pauses the game proper.
+     * @param button Specify the ImageButton to open the pause menu to listen for the button's onClick, otherwise, immediately pauses the game.
+     * @return Returns the View that was inflated.
+     */
+    public View pauseGame(ImageButton button) {
+        LayoutInflater inflater = GameActivity.this.getLayoutInflater();
+        View view = inflater.inflate(R.layout.activity_pause, null);
+        view.setLayoutParams(new ConstraintLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT)
+        );
+
+        if (button != null) {
+            button.setOnClickListener(v -> {
+                pause(view);
+            });
+            // Sets up listener for the resume button
+            resumeGame();
+        } else {
+            pause(view);
+        }
+
+        return view;
+    }
+
+    /**
+     * Restarts the main thread of the game
+     */
+    public void resumeGame() {
+        if (pauseView != null) {
+            Button btnResume = pauseView.findViewById(R.id.btn_pause_resume);
+            btnResume.setOnClickListener(v -> {
+                resume();
+            });
+        } else {
+            resume();
+        }
+    }
+
+    /**
+     * Gets the game's grid data
+     * @return 2D array with ordinal representations of Tetrominoes on the grid
+     */
     public static int[][] getGameData(){ return blockData; }
 
+    /**
+     * Gets the game's current state
+     * @return GameState enum indicating NEW, SPAWN, FALL, or END
+     */
     public static GameState getGameState(){ return gameState; }
 
+    /**
+     * Gets the shape of the Tetromino in the hold
+     * @return Shape enum indicating the specific shape of the Tetromino
+     */
     public static Shape getHoldTetromino(){ return holdTetromino; }
 
+    /**
+     * Gets the List of Tetrominoes that are next for spawning
+     * @return List of ordinals representing the shape type of the Tetrominoes
+     */
     public static List<Integer> getPieceBag(){ return pieceBag;}
 
     public void debugTest(){
@@ -299,6 +423,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         Tetromino spawning, movement, and collision functions
      */
 
+    /**
+     * Generates the next Tetrominoes that will be spawned
+     */
     public void populatePieceBag(){
         //make an array of 7 elements..
         int array[] = {1,2,3,4,5,6,7};
@@ -322,6 +449,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     }
 
+    /**
+     * Spawns a Tetromino on the top center of the grid
+     * @return true if spawning conditions are legal, false if otherwise
+     */
     public boolean SpawnTetromino(){
 
         fallingTetromino = new Tetromino(Shape.values()[pieceBag.remove(0)]);
@@ -350,7 +481,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         return true;
     }
 
-    // Places the falling Tetromino into hold
+    /**
+     * Places the currently falling Tetromino into the hold
+     */
     public void swapTetromino(){
         if (!usedHold){
             Shape temp;
@@ -386,33 +519,42 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     @Override
     protected void onPause() {
+        // Pause the running game
+        pauseGame(null);
+        // Pause music
+        if (musicService != null) { musicService.pause(); }
+
         super.onPause();
-        if (musicService != null) {
-            musicService.pause();
-        }
+
     }
 
     @Override
     protected void onStop() {
+        // Pause the running game
+        pauseGame(null);
+        // Stop music
+        if (musicService != null) { musicService.pause(); }
+
         super.onStop();
-        if (musicService != null) {
-            musicService.pause();
-        }
     }
 
     @Override
     protected void onDestroy() {
+        // Stop the running game
+        pauseGame(null);
+        // Stop music
+        if (musicService != null) { musicService.stop(); }
+
         super.onDestroy();
-        if (musicService != null) {
-            musicService.stop();
-        }
     }
 
     @Override
     protected void onResume() {
+        // Resume the running game
+        if (pauseInvoked) { resumeGame(); }
+        // Resume music
+        if (musicService != null) { musicService.resume(); }
+
         super.onResume();
-        if (musicService != null) {
-            musicService.resume();
-        }
     }
 }
