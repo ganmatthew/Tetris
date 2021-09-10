@@ -46,6 +46,35 @@ public class Tetromino {
         {0,0,-1,2,2}
     };
 
+    private static final int OFFSET_DATA_I_X[][] = {
+            {0,-1,2,-1,2},
+            {-1,0,0,0,0},
+            {-1,1,-2,1,-2},
+            {0,0,0,0,0}
+    };
+
+    private static final int OFFSET_DATA_I_Y[][] = {
+            {0,0,0,0,0},
+            {0,0,0,1,-2},
+            {1,1,1,0,0},
+            {0,1,1,-1,2}
+    };
+
+    private static final int OFFSET_DATA_O_X[][] = {
+            {0,0,0,0,0},
+            {0,0,0,0,0},
+            {-1,0,0,0,0},
+            {-1,0,0,0,0}
+    };
+
+    private static final int OFFSET_DATA_O_Y[][] = {
+            {0,0,0,0,0},
+            {-1,0,0,0,0},
+            {-1,0,0,0,0},
+            {0,0,0,0,0}
+    };
+
+
     private Shape shape;
     private int dataX[][];
     private int dataY[][];
@@ -107,6 +136,11 @@ public class Tetromino {
         return value;
     }
 
+
+
+
+
+
     public boolean MoveTetromino(Direction direction, boolean isMoving){
         if (!isMoving) {
             isMoving = true;
@@ -150,59 +184,99 @@ public class Tetromino {
             }
 
             for (int i = 0; i < 4; i++){
-                currData[dataY[pos][i]][dataX[pos][i]] = shape.ordinal(); //empty shape
+                currData[dataY[pos][i]][dataX[pos][i]] = shape.ordinal();
             }
         }
 
         return isMoving;
     }
 
+
+
+
+
     //left is 90* acw, right is 90 cw
     public void Rotate(Rotation r){
-
-
         boolean success_rotation = false;
 
         int curr_pos = pos;
         int target_pos = pos;
 
-        int offset_data_curr_pos_x;
-        int offset_data_target_pos_x;
-
-        int offset_data_curr_pos_y;
-        int offset_data_target_pos_y;
+        int derived_offset_data_x[] = new int[4];
+        int derived_offset_data_y[] = new int[4];
 
         int curr_data[][] = GameActivity.getGameData();
         //erase the data in curr_data..
+
         for (int i = 0; i < 4; i++){
             curr_data[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
         }
 
-        switch(r){
-            case CLOCKWISE:
-                if (curr_pos == 3) { target_pos = 0; } else { target_pos++;};
+        if (r == Rotation.CLOCKWISE){
+            if (curr_pos == 3) { target_pos = 0; } else { target_pos++;}
+        }
+        else if (r == Rotation.ANTICLOCKWISE){
+            if (curr_pos == 0) { target_pos = 3; } else { target_pos--; };
+        }
 
-                switch(shape){
-                    case J_SHAPE:
-                    case L_SHAPE:
-                    case S_SHAPE:
-                    case Z_SHAPE:
-                    case T_SHAPE:
-
-
-
-
-                        break;
+        switch (shape){
+            case J_SHAPE:
+            case L_SHAPE:
+            case S_SHAPE:
+            case Z_SHAPE:
+            case T_SHAPE:
+                for (int i = 0; i < 4; i++){
+                    derived_offset_data_x[i] = OFFSET_DATA_JLSTZ_X[curr_pos][i] - OFFSET_DATA_JLSTZ_X[target_pos][i];
+                    derived_offset_data_y[i] = OFFSET_DATA_JLSTZ_Y[curr_pos][i] - OFFSET_DATA_JLSTZ_Y[target_pos][i];
                 }
+                break;
+            case I_SHAPE:
+                for (int i = 0; i < 4; i++){
+                    derived_offset_data_x[i] = OFFSET_DATA_I_X[curr_pos][i] - OFFSET_DATA_I_X[target_pos][i];
+                    derived_offset_data_y[i] = OFFSET_DATA_I_Y[curr_pos][i] - OFFSET_DATA_I_Y[target_pos][i];
+                }
+                break;
+            case O_SHAPE:
+                for (int i = 0; i < 4; i++){
+                    derived_offset_data_x[i] = OFFSET_DATA_O_X[curr_pos][i] - OFFSET_DATA_O_X[target_pos][i];
+                    derived_offset_data_y[i] = OFFSET_DATA_O_Y[curr_pos][i] - OFFSET_DATA_O_Y[target_pos][i];
+                }
+                break;
 
+        }
+
+        for (int i = 0; i < 5; i++){
+            //offset tetromino first.
+            addYOffset(derived_offset_data_y[i]);
+            addXOffset(derived_offset_data_x[i]);
+
+            //check legality of rotation.
+            if (
+                (dataY[target_pos][i] > 19 ||
+                dataX[target_pos][i] > 9 ||
+                dataX[target_pos][i] < 0 ||
+                curr_data[dataY[target_pos][i]][dataX[target_pos][i]] != 0)
+            ){
+                addXOffset(derived_offset_data_x[i] * -1);
+                addYOffset(derived_offset_data_y[i] * -1);
+            }
+            else {
+                success_rotation = true;
                 break;
-            case ANTICLOCKWISE:
-                if (curr_pos == 0) { target_pos = 3; } else { target_pos--; };
-                break;
+            }
+        }
+
+        if (success_rotation){
+            pos = target_pos;
+            GameActivity.ResetCounter();
+        }else{
+            pos = curr_pos;
         }
 
 
-
+        for (int i = 0; i < 4; i++){
+            curr_data[dataY[pos][i]][dataX[pos][i]] = shape.ordinal();
+        }
 
     }
 

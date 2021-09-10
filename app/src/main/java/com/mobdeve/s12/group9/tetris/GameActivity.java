@@ -41,9 +41,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public static final int GAME_OFFSET = 10;
 
     // Game activity parameters
-    public static final int DELAY_NORMAL = 1000;
+    public static final int DELAY_NORMAL = 800;
     public static final int DELAY_FAST = 100;
     public static int delay = DELAY_NORMAL;
+    private static int counter;
 
     // Grid components
     private static GameState gameState;
@@ -181,8 +182,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             float fingerPosition = e.getX();
             if (fingerPosition < medianLine) {
                 Log.d(GESTURE_TAG, "\nDouble tap on LEFT SIDE\n");
+                fallingTetromino.Rotate(Rotation.ANTICLOCKWISE);
             } else {
                 Log.d(GESTURE_TAG, "\nDouble tap on RIGHT SIDE\n");
+                fallingTetromino.Rotate(Rotation.CLOCKWISE);
             }
             return true;
         }
@@ -249,6 +252,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) { return false; }
 
+    public static void ResetCounter(){
+        counter = 1;
+    }
     /*
         Game board modifiers
      */
@@ -259,8 +265,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public void startGame(){
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         handler = new Handler(Looper.getMainLooper());
+        counter = 1;
         loop = new Runnable() {
-            int counter = 1;
             @Override
             public void run() {
                 switch (gameState){
@@ -287,6 +293,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                             if(SpawnTetromino()){
                                 counter = 1;
                                 usedHold = false;
+
+                                //clear lines.
+                                ClearLines();
+
                             }
                             else{
                                 gameState = GameState.END;
@@ -511,6 +521,35 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         }
 
         usedHold = true;
+    }
+
+
+
+    public boolean ClearLines_Sub(int[] row){
+        for (int i = 0; i < row.length; i++){
+            if (row[i] == 0){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void ClearLines(){
+        for (int i = NUM_HEIGHT - 1; i > -1; i--){  //from the bottom of the grid, go up
+
+            if (ClearLines_Sub(blockData[i])){ //until you find a row that is full
+
+                for (int j = i; j > 0; j--){ // if so, loop until the highest point
+
+                    for (int k = 0; k < NUM_WIDTH; k++){
+                        blockData[j][k] = blockData[j - 1][k]; //and shift all of the blocks by 1
+                    }
+
+                }
+            }
+
+        }
     }
 
     /***
