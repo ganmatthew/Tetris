@@ -13,7 +13,7 @@ Game progress is saved when the player exits, and the saved state is loaded when
  - *Move:* **Drag the falling Tetris pieces left and right** to move them around the grid.
  - *Accelerate:* **Swipe down Tetris pieces** to make them incrementally fall down faster.
  - *Hold:* **Swipe up Tetris pieces** to move them into a hold storage, which can store one piece at a time.
- - *Rotate:* **Tap the left side** of the screen to rotate the current piece clockwise, or **tap the right side** of the screen to rotate the current piece counterclockwise.
+ - *Rotate:* **Tap the left side** of the screen to rotate the current piece counterclockwise, or **tap the right side** of the screen to rotate the current piece clockwise.
 
 ### Attributions
 Settings icon by C. V. Galli from the Noun Project

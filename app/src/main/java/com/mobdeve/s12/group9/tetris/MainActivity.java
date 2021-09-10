@@ -29,14 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private View leaderView;
 
     private MusicService musicService;
-
-    // Settings view components
-    private SharedPreferences sp;
-    private SharedPreferences.Editor spEditor;
-
-    private double touchSensitivity = 0.5;
-    private boolean musicEnabled = true;
-    private boolean soundsEnabled = true;
+    private SettingsService settingsService;
 
     /***
      * Activity listeners
@@ -45,9 +38,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Initialize PreferenceManager
-        this.sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // Set main menu view
         setContentView(R.layout.activity_main);
@@ -93,14 +83,19 @@ public class MainActivity extends AppCompatActivity {
     private View bindViewToButton(int viewRes, int closeButtonRes, ImageButton openButton) {
         LayoutInflater inflater = MainActivity.this.getLayoutInflater();
         View view = inflater.inflate(viewRes, null);
+
         view.setLayoutParams(new ConstraintLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT)
         );
 
         openButton.setOnClickListener(v -> {
-            if (view.getParent() == null)
+            if (view.getParent() == null) {
                 clOverlay.addView(view);
+
+                // Initialize SettingsService
+                settingsService = new SettingsService(view,MainActivity.this);
+            }
         });
 
         ImageButton closeButton = view.findViewById(closeButtonRes);
