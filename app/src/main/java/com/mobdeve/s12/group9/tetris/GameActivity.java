@@ -30,6 +30,12 @@ enum GameState {
     END
 }
 
+enum GameMode {
+    SPRINT,
+    MARATHON,
+    ENDLESS
+}
+
 public class GameActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
     // Debugging tags
     private static final String GESTURE_TAG = "Gestures";

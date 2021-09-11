@@ -14,7 +14,7 @@
     <color name="button_slider_tick">#3D4155</color>
     <color name="button_slider_track">#2D303F</color>
     <color name="button_close">#BB1F1F</color>
-    <color name="button_pause">#1F6ABB</color>
+    <color name="button_pause">#1F4BBB</color>
 
     <color name="popup_outside_color">#CC313440</color> <!--Note the first two digits are alpha (transparency) in hex-->
     <color name="popup_background_color">#3D4155</color>

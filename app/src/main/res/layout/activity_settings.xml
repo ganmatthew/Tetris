@@ -68,7 +68,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/custom_close_icon"
+                    app:srcCompat="@drawable/close_icon"
                     app:tint="@color/white" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>

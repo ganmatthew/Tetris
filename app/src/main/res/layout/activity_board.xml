@@ -40,11 +40,11 @@
             android:elevation="2dp"
             android:padding="12dp"
             android:scaleType="centerInside"
-            app:tint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/custom_close_icon" />
+            app:srcCompat="@drawable/help_icon"
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btn_board_pause"
@@ -53,22 +53,24 @@
             android:background="@drawable/rounded_button"
             android:backgroundTint="@color/button_pause"
             android:elevation="2dp"
-            android:padding="12dp"
+            android:padding="8dp"
             android:scaleType="centerInside"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/tv_board_score"
-            app:srcCompat="@drawable/custom_close_icon" />
+            app:srcCompat="@drawable/noun_pause_4234284"
+            app:tint="@color/white" />
 
         <TextView
             android:id="@+id/tv_board_score_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:fontFamily="@font/rubik_medium"
             android:text="@string/board_score_default_value"
             android:textAlignment="center"
             android:textColor="@color/white"
-            android:textSize="60sp"
+            android:textSize="48sp"
             app:layout_constraintEnd_toEndOf="@+id/tv_board_score"
             app:layout_constraintStart_toStartOf="@+id/tv_board_score"
             app:layout_constraintTop_toBottomOf="@+id/tv_board_score" />
