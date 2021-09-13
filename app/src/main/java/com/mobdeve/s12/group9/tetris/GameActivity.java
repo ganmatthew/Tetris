@@ -547,7 +547,6 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         for (int i = NUM_HEIGHT - 1; i > -1; i--){  //from the bottom of the grid, go up
 
             if (ClearLines_Sub(blockData[i])){ //until you find a row that is full
-                rt_val++;
                 for (int j = i; j > 0; j--){ // if so, loop until the highest point
 
                     for (int k = 0; k < NUM_WIDTH; k++){
@@ -555,6 +554,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     }
 
                 }
+                rt_val++;
+                i = NUM_HEIGHT - 1;
             }
 
         }
