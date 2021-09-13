@@ -23,8 +23,13 @@ public class GridView extends View {
 
         helper.drawGridBorders(canvas, frame_painter, GridView.this);
 
-        if (GameActivity.getGameState() != GameState.END){
-            helper.drawGridPieces(canvas, block_painter, GridView.this);
+        switch (GameActivity.getGameState()) {
+            case END_WIN:
+            case END_LOSE:
+                break;
+            default:
+                helper.drawGridPieces(canvas, block_painter, GridView.this);
+                break;
         }
     }
 }

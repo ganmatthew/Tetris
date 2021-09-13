@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private void bindToPlayButton() {
         btnPlay.setOnClickListener(v -> {
             Intent i = new Intent(MainActivity.this, GameActivity.class);
+            i.putExtra(GameMode.class.getName(), GameMode.SPRINT.name());
             startActivity(i);
             /*
             if (btnPlay.getVisibility() == View.VISIBLE) {
@@ -93,8 +94,11 @@ public class MainActivity extends AppCompatActivity {
             if (view.getParent() == null) {
                 clOverlay.addView(view);
 
-                // Initialize SettingsService
-                settingsService = new SettingsService(view,MainActivity.this);
+                // Initialize SettingsService only when Settings is inflated
+                if (viewRes == R.layout.activity_settings) {
+                    settingsService = new SettingsService(view,MainActivity.this);
+                }
+
             }
         });
 

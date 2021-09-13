@@ -16,9 +16,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,7 +29,8 @@ enum GameState {
     NEW,
     SPAWN,
     FALL,
-    END
+    END_WIN,
+    END_LOSE
 }
 
 enum GameMode {
@@ -62,6 +65,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     // Game components
     private MusicService musicService;
+    private SettingsService settingsService;
     private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
     private ViewsHelper helper;
@@ -80,11 +84,15 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private HoldView holdView;
     private NextView nextView;
 
+    private TextView tvScoreTitle;
+    private TextView tvScoreValue;
+
     private ImageButton btnPause;
     private ImageButton btnHelp;
 
     // Pause menu and Settings menu components
     private ConstraintLayout clOverlay;
+    private ConstraintLayout clPauseOverlay;
 
     private View pauseView;
     private View settingsView;
@@ -92,6 +100,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private Button btnResume;
     private Button btnSettings;
     private Button btnExit;
+
+    private GameMode mode;
+    private int totalCleared;
+    private int countdown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,15 +152,70 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         btnPause = findViewById(R.id.btn_board_pause);
 
+        // Sets the game mode and relevant factors
+        tvScoreTitle = findViewById(R.id.tv_board_score);
+        tvScoreValue = findViewById(R.id.tv_board_score_value);
+        setGameMode();
+
         // Start MusicService, plays the Tetris theme
         musicService = new MusicService(GameActivity.this);
         musicService.start();
 
         // Listen for pause button events
-        pauseView = pauseGame(btnPause);
+        pauseGame(btnPause);
 
         pauseInvoked = false;
         startGame();
+    }
+
+    /**
+     * Sets the game mode based on the value passed by the intent.
+     */
+    private void setGameMode() {
+        Bundle bundle = getIntent().getExtras();
+        String result = bundle.getString(GameMode.class.getName());
+        mode = GameMode.valueOf(result);
+
+        switch(mode) {
+            case SPRINT:
+                tvScoreTitle.setText(R.string.board_score_sprint);
+                tvScoreValue.setText("40");
+                totalCleared = 0;
+                break;
+            case MARATHON:
+                tvScoreTitle.setText(R.string.board_score_marathon);
+                tvScoreValue.setText("2:00");
+                countdown = 0;
+                break;
+            case ENDLESS:
+                tvScoreTitle.setText(R.string.board_score_endless);
+                tvScoreValue.setText("0");
+                totalCleared = 0;
+                break;
+        }
+        updateScore();
+    }
+
+    /**
+     * Adds commas to number values in the thousands and greater
+     * @param value Accepts any non-decimal numerical value
+     * @return String of number containing commas
+     */
+    private String formatScore(int value) { return String.format(Locale.getDefault(), "%,d", value); }
+
+    /**
+     * Updates the displayed score for number of lines cleared
+     */
+    private void updateScore() {
+        int sprintScore = 40 - totalCleared;
+        switch(mode) {
+            case SPRINT:
+                tvScoreValue.setText(formatScore(sprintScore));
+                break;
+            case ENDLESS:
+                tvScoreValue.setText(formatScore(totalCleared));
+                break;
+        }
     }
 
     /*
@@ -275,7 +342,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         loop = new Runnable() {
             @Override
             public void run() {
-                switch (gameState){
+                switch (gameState) {
                     case NEW:
                         populatePieceBag();
                         populatePieceBag();
@@ -285,36 +352,44 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
                     case SPAWN:
                         delay = DELAY_NORMAL;
-                        gameState = !SpawnTetromino() ? GameState.END : GameState.FALL;
+                        gameState = spawnTetromino() ? GameState.FALL : GameState.END_LOSE;
                         usedHold = false;
                         break;
 
                     case FALL:
                         if(!fallingTetromino.MoveTetromino(Direction.DOWN, false)) counter++;
 
-                        if (counter > 2){
+                        if (counter > 2) {
                             // Resets the delay speed after the down gesture
                             if (delay == DELAY_FAST) { delay = DELAY_NORMAL; }
 
-                            if(SpawnTetromino()){
+                            if(spawnTetromino()){
                                 counter = 1;
                                 usedHold = false;
 
                                 //clear lines.
-                                ClearLines();
-
+                                totalCleared += clearLines();
+                                updateScore();
                             }
-                            else{
-                                gameState = GameState.END;
+                            else {
+                                gameState = GameState.END_LOSE;
+                            }
+                            // Check for possible end-game conditions after score updates
+                            switch(mode) {
+                                case SPRINT:
+                                    if (totalCleared == 40) { gameState = GameState.END_WIN; }
+                                    break;
+                                case MARATHON:
+                                    if (countdown == 0) { gameState = GameState.END_LOSE; }
+                                    break;
                             }
                         }
                         break;
 
-                    case END:
-                        blockData = new int[][]{{0}};
-                        pauseGame(null);
+                    case END_WIN:
+                    case END_LOSE:
+                        setEndScreen(gameState);
                         break;
-
                 }
 
                 gridView.invalidate();
@@ -332,69 +407,129 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     }
 
     /**
+     * Displays the win or lose end screen
+     */
+    private void setEndScreen(GameState endState) {
+        LayoutInflater inflater = GameActivity.this.getLayoutInflater();
+        Button exitBtn;
+        View view;
+
+        if (endState == GameState.END_WIN) {
+            view = inflater.inflate(R.layout.activity_win, null);
+        } else {
+            view = inflater.inflate(R.layout.activity_lose, null);
+        }
+
+        switch (endState) {
+            case END_WIN:
+            case END_LOSE:
+                setViewToInflateToLayout(view);
+                if (view.getParent() == null) {
+                    handler.removeCallbacksAndMessages(null);
+                    clOverlay.addView(view);
+                }
+                if (endState == GameState.END_WIN) {
+                    exitBtn = view.findViewById(R.id.btn_win_back);
+                } else {
+                    exitBtn = view.findViewById(R.id.btn_lose_back);
+                }
+
+                if (view.getParent() != null) {
+                    exitBtn.setOnClickListener(v -> {
+                        Log.d("EXIT", "Clicked!");
+                        GameActivity.this.finish();
+                    });
+                }
+                break;
+        }
+    }
+
+    /**
      * Stops the main thread of the game and opens the pause menu
      */
-    private void pause(View view) {
+    private void pause() {
         // Pause only if the pause menu is not inflated
-        if (view.getParent() == null) {
-            // Stops the thread
-            pauseInvoked = true;
-            handler.removeCallbacksAndMessages(null);
-            // Inflate pause menu
-            clOverlay.addView(view);
+        switch(gameState) {
+            case END_LOSE:
+            case END_WIN:
+                break;
+            default:
+                if (pauseView.getParent() == null) {
+                    // Stops the thread
+                    pauseInvoked = true;
+                    handler.removeCallbacksAndMessages(null);
+                    // Inflate pause menu
+                    clOverlay.addView(pauseView);
+                }
+
+                clPauseOverlay = pauseView.findViewById(R.id.cl_pause_menu_overlay_container);
+                btnResume = pauseView.findViewById(R.id.btn_pause_resume);
+                btnSettings = pauseView.findViewById(R.id.btn_pause_settings);
+                btnExit = pauseView.findViewById(R.id.btn_pause_exit);
+
+                if (pauseView.getParent() != null) {
+                    btnResume.setOnClickListener(v -> {
+                        // Remove Settings view first
+                        if (settingsView.getParent() == null) {
+                            clPauseOverlay.removeView(settingsView);
+                        }
+                        // Resume game
+                        if (pauseInvoked) { resumeGame(); }
+                    });
+                    btnSettings.setOnClickListener(v -> {
+                        if (settingsView.getParent() == null) {
+                            clPauseOverlay.addView(settingsView);
+                        }
+                        // Initialize SettingsService
+                        settingsService = new SettingsService(pauseView,GameActivity.this);
+                    });
+                    btnExit.setOnClickListener(v -> {
+                        Log.d("EXIT", "Clicked!");
+                        GameActivity.this.finish();
+                    });
+                }
+                break;
         }
     }
 
     /**
      * Restarts the main thread of the game and closes the menu if present
      */
-    private void resume() {
-        // Resume game
-        if (pauseInvoked) { startGame(); }
-        // Deflate pause menu
-        if (pauseView != null) {
-            if (pauseView.getParent() != null) { clOverlay.removeView(pauseView); }
-        }
+    private void resumeGame() {
+        if (pauseView != null) { clPauseOverlay.removeView(pauseView); }
+        startGame();
     }
 
     /**
-     * Pauses the game proper.
+     * Pauses the game proper and inflates a view if needed.
      * @param button Specify the ImageButton to open the pause menu to listen for the button's onClick, otherwise, immediately pauses the game.
-     * @return Returns the View that was inflated.
      */
-    public View pauseGame(ImageButton button) {
+    public void pauseGame(ImageButton button) {
         LayoutInflater inflater = GameActivity.this.getLayoutInflater();
-        View view = inflater.inflate(R.layout.activity_pause, null);
-        view.setLayoutParams(new ConstraintLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT)
-        );
+        View viewPause = inflater.inflate(R.layout.activity_pause, null);
+        View viewSettings = inflater.inflate(R.layout.activity_settings, null);
+
+        setViewToInflateToLayout(viewPause);
+        setViewToInflateToLayout(viewSettings);
 
         if (button != null) {
-            button.setOnClickListener(v -> {
-                pause(view);
-            });
-            // Sets up listener for the resume button
-            resumeGame();
+            button.setOnClickListener(v -> pause());
         } else {
-            pause(view);
+            pause();
         }
-
-        return view;
+        pauseView = viewPause;
+        settingsView = viewSettings;
     }
 
     /**
-     * Restarts the main thread of the game
+     * Sets a View's bounds to match that of a ConstraintLayout
+     * @param view A view that will be inflated onto a ConstraintLayout
      */
-    public void resumeGame() {
-        if (pauseView != null) {
-            Button btnResume = pauseView.findViewById(R.id.btn_pause_resume);
-            btnResume.setOnClickListener(v -> {
-                resume();
-            });
-        } else {
-            resume();
-        }
+    private void setViewToInflateToLayout(View view) {
+        view.setLayoutParams(new ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT)
+        );
     }
 
     /**
@@ -421,6 +556,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      */
     public static List<Integer> getPieceBag(){ return pieceBag;}
 
+    /**
+     * Test for checking if all Tetromino pieces render correctly on the grid
+     */
     public void debugTest(){
         if (blockData[0][0] == 6){
             blockData[0][0] = 2;
@@ -459,9 +597,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             }
         }
 
-        for (int i = 0; i < array.length; i++){
-            pieceBag.add(array[i]);
-        }
+        for (int j : array) { pieceBag.add(j); }
 
     }
 
@@ -469,7 +605,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      * Spawns a Tetromino on the top center of the grid
      * @return true if spawning conditions are legal, false if otherwise
      */
-    public boolean SpawnTetromino(){
+    public boolean spawnTetromino(){
 
         fallingTetromino = new Tetromino(Shape.values()[pieceBag.remove(0)]);
 
@@ -521,7 +657,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             } else{
                 // Removes the Tetromino from hold and sets it to spawn again
                 holdTetromino = fallingTetromino.getShape();
-                SpawnTetromino();
+                spawnTetromino();
             }
 
         }
@@ -529,35 +665,48 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         usedHold = true;
     }
 
-
-
-    public boolean ClearLines_Sub(int[] row){
-        for (int i = 0; i < row.length; i++){
-            if (row[i] == 0){
+    /**
+     * Checks if the given row on the grid is filled up with blocks
+     * @param row A row from the grid
+     * @return true if full, false if empty
+     */
+    public boolean checkRowForFull(int[] row){
+        for (int j : row) {
+            if (j == Shape.EMPTY_SHAPE.ordinal()) {
                 return false;
             }
         }
-
         return true;
     }
 
-    public int ClearLines(){
+    /**
+     *
+     * @return Returns the number of lines cleared in this function call.
+     */
+    public int clearLines(){
+        int cnt = NUM_HEIGHT - 1;
         int rt_val = 0;
 
         for (int i = NUM_HEIGHT - 1; i > -1; i--){  //from the bottom of the grid, go up
-
-            if (ClearLines_Sub(blockData[i])){ //until you find a row that is full
-                for (int j = i; j > 0; j--){ // if so, loop until the highest point
-
-                    for (int k = 0; k < NUM_WIDTH; k++){
-                        blockData[j][k] = blockData[j - 1][k]; //and shift all of the blocks by 1
-                    }
-
+            if (checkRowForFull(blockData[i])){ //until you find a row that is full
+                for (int j = 0; j < NUM_WIDTH; j++){
+                    blockData[i][j] = 0;
                 }
                 rt_val++;
-                i = NUM_HEIGHT - 1;
+            }
+        }
+
+        if (rt_val != 0){
+            int[][] new_block_data = new int[NUM_HEIGHT][NUM_WIDTH];
+
+            for (int i = NUM_HEIGHT - 1; i > -1; i--){
+                if (!checkRowForFull(blockData[i])){
+                    new_block_data[cnt] = blockData[i];
+                    cnt--;
+                }
             }
 
+            blockData = new_block_data;
         }
 
         return rt_val;

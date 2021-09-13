@@ -25,8 +25,13 @@ public class HoldView extends View {
 
         helper.drawHoldBorders(canvas, frame_painter, HoldView.this);
 
-        if (GameActivity.getGameState() != GameState.END){
-            helper.drawHoldPieces(canvas, block_painter, HoldView.this);
+        switch (GameActivity.getGameState()) {
+            case END_WIN:
+            case END_LOSE:
+                break;
+            default:
+                helper.drawHoldPieces(canvas, block_painter, HoldView.this);
+                break;
         }
     }
 

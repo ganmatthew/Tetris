@@ -23,8 +23,13 @@ public class NextView extends View {
 
         helper.drawNextBorders(canvas, frame_painter, NextView.this);
 
-        if (GameActivity.getGameState() != GameState.END){
-            helper.drawNextPieces(canvas, block_painter, NextView.this);
+        switch (GameActivity.getGameState()) {
+            case END_WIN:
+            case END_LOSE:
+                break;
+            default:
+                helper.drawNextPieces(canvas, block_painter, NextView.this);
+                break;
         }
     }
 }
