@@ -2,16 +2,15 @@ package com.mobdeve.s12.group9.tetris;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Switch;
 
-import com.google.android.material.slider.Slider;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
-import java.io.IOException;
+import com.google.android.material.slider.Slider;
 
 enum Keys {
     MUSIC_ENABLED,
@@ -36,21 +35,29 @@ public class SettingsService {
     private Switch musicSwitch;
     private Switch soundsSwitch;
     private Slider touchSensSlider;
+    private ImageButton btnClose;
+    private ConstraintLayout clOverlay;
 
     private Context context;
+    private boolean isViewInflated;
 
-    public SettingsService(View view, Context context) {
+    public SettingsService(View view, ConstraintLayout layout, Context context) {
         this.settingsView = view;
+        this.clOverlay = layout;
         this.context = context;
+
+        isViewInflated = true;
 
         musicSwitch = view.findViewById(R.id.sw_settings_music);
         soundsSwitch = view.findViewById(R.id.sw_settings_sounds);
         touchSensSlider = view.findViewById(R.id.sl_settings_sensitivity);
+        btnClose = view.findViewById(R.id.btn_settings_exit);
 
         this.sp = PreferenceManager.getDefaultSharedPreferences(( context.getApplicationContext() ));
         this.spEditor = this.sp.edit();
 
         this.loadSettings();
+        this.closeSettings();
     }
 
     // Sets the settings parameters based on the loaded data
@@ -69,6 +76,15 @@ public class SettingsService {
         this.spEditor.apply();
     }
 
+    public void closeSettings() {
+        btnClose.setOnClickListener(v -> {
+            clOverlay.removeView(settingsView);
+            isViewInflated = false;
+        });
+    }
+
     // Changes the context of settings as it is passed from one activity to another
     public void setContext(Context context) { this.context = context; }
+
+    public boolean getIsInflated() { return this.isViewInflated; }
 }

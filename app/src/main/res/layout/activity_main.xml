@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="96dp"
+            android:layout_marginTop="81dp"
             android:layout_marginEnd="16dp"
             android:adjustViewBounds="true"
             android:scaleType="fitCenter"
@@ -56,49 +56,97 @@
             android:id="@+id/ll_menu_modes"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginStart="36dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="36dp"
+            android:layout_marginBottom="16dp"
             android:orientation="vertical"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/ll_menu_misc">
+            app:layout_constraintBottom_toTopOf="@+id/ll_menu_misc"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iv_menu_logo">
 
             <Button
                 android:id="@+id/btn_play_sprint"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/button_sprint"
                 android:elevation="2dp"
                 android:fontFamily="@font/rubik_bold"
-                android:text="@string/menu_play_sprint"
+                android:text="@string/sprint_name"
                 android:textSize="38sp"
                 app:cornerRadius="50sp" />
+
+            <TextView
+                android:id="@+id/tv_play_sprint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:fontFamily="@font/rubik_medium"
+                android:gravity="center_horizontal"
+                android:singleLine="false"
+                android:text="@string/sprint_desc"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="21sp" />
 
             <Button
                 android:id="@+id/btn_play_marathon"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/button_marathon"
                 android:elevation="2dp"
                 android:fontFamily="@font/rubik_bold"
-                android:text="@string/menu_play_marathon"
+                android:text="@string/marathon_name"
                 android:textSize="38sp"
                 app:cornerRadius="50sp" />
+
+            <TextView
+                android:id="@+id/tv_play_marathon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:fontFamily="@font/rubik_medium"
+                android:gravity="center_horizontal"
+                android:singleLine="false"
+                android:text="@string/marathon_desc"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="21sp" />
 
             <Button
                 android:id="@+id/btn_play_endless"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/button_endless"
                 android:elevation="2dp"
                 android:fontFamily="@font/rubik_bold"
-                android:text="@string/menu_play_endless"
+                android:text="@string/endless_name"
                 android:textSize="38sp"
                 app:cornerRadius="50sp" />
+
+            <TextView
+                android:id="@+id/tv_play_endless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:fontFamily="@font/rubik_medium"
+                android:gravity="center_horizontal"
+                android:singleLine="false"
+                android:text="@string/endless_desc"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="21sp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cl_play_back"
@@ -108,11 +156,10 @@
 
                 <Button
                     android:id="@+id/btn_play_back"
-                    android:layout_width="0dp"
+                    android:layout_width="150dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="96dp"
-                    android:layout_marginEnd="96dp"
                     android:layout_weight="1"
+                    android:backgroundTint="@color/button_dark"
                     android:elevation="2dp"
                     android:fontFamily="@font/rubik_medium"
                     android:text="@string/menu_play_back"
@@ -150,6 +197,7 @@
             android:layout_marginBottom="64dp"
             android:baselineAligned="false"
             android:orientation="horizontal"
+            android:visibility="visible"
             app:layout_constraintBottom_toTopOf="@+id/tv_menu_credits"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">

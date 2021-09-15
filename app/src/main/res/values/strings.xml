@@ -1,34 +1,54 @@
 <resources>
     <string name="app_name">Tetris</string>
     <string name="app_name_caps">TETRIS</string>
+
     <string name="menu_play">Play</string>
-    <string name="menu_play_sprint">Sprint</string>
-    <string name="menu_play_marathon">Marathon</string>
-    <string name="menu_play_endless">Endless</string>
     <string name="menu_play_back">Back</string>
     <string name="menu_credits">By Matthew Gan and Jose Noblefranca</string>
+
     <string name="settings_header">Settings</string>
     <string name="settings_music">Toggle music</string>
     <string name="settings_sounds">Toggle sounds</string>
     <string name="settings_sensitivity">Set touch sensitivity</string>
     <string name="exit_menu">X</string>
+
     <string name="leaderboard_default_rank">1</string>
-    <string name="leaderboard_default_username">Boaty McBoatFace</string>
+    <string name="leaderboard_default_username">Player</string>
     <string name="leaderboard_default_score_value">58 min 02 sec</string>
     <string name="leaderboard_default_timestamp">09/04/2021 5:08 PM</string>
+
     <string name="board_score_sprint">Lines Remaining</string>
     <string name="board_score_marathon">Time Remaining</string>
     <string name="board_score_endless">Lines Cleared</string>
     <string name="board_score_default_value">40</string>
     <string name="board_hold">Hold</string>
     <string name="board_next">Next</string>
+
     <string name="pause_menu_header">Game Paused</string>
     <string name="pause_menu_resume">Resume</string>
     <string name="pause_menu_settings">Settings</string>
     <string name="pause_menu_exit">Save and Quit</string>
+
+    <string name="sprint_name">Sprint</string>
+    <string name="sprint_desc">Clear 40 lines as quickly as possible!</string>
+
+    <string name="marathon_name">Marathon</string>
+    <string name="marathon_desc">Clear as many lines in two minutes!</string>
+
+    <string name="endless_name">Endless</string>
+    <string name="endless_desc">How long can you survive?</string>
+
+    <string name="help_back">Close</string>
+    <string name="help_up">Swipe up to move pieces to and from the Hold!</string>
+    <string name="help_left_right">Swipe left and right to move pieces around!</string>
+    <string name="help_down">Swipe down to make the piece fall faster!</string>
+    <string name="help_rotate">Double tap the sides to rotate left or right!</string>
+
     <string name="win_title">SUCCESS!</string>
     <string name="win_message">You won a game of Tetris!</string>
     <string name="lose_title">WHOOPS!</string>
-    <string name="lose_message">Try again.</string>
+    <string name="lose_message">You cleared 999 lines. Good luck next time!</string>
+    <string name="timer_finished_title">TIMES UP!</string>
+    <string name="timer_finished_message">You cleared 999 lines in the given time!</string>
     <string name="end_back">Back to Menu</string>
 </resources>

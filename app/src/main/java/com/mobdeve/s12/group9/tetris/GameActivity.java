@@ -5,6 +5,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
 
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -24,13 +25,15 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 enum GameState {
     NEW,
     SPAWN,
     FALL,
     END_WIN,
-    END_LOSE
+    END_LOSE,
+    END_MARATHON
 }
 
 enum GameMode {
@@ -44,14 +47,17 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private static final String GESTURE_TAG = "Gestures";
 
     // Grid size parameters
-    public static final int NUM_HEIGHT = 20;
-    public static final int NUM_WIDTH = 10;
-    public static final int NUM_BLOCKSIZE = 80;
-    public static final int GAME_OFFSET = 10;
+    public static final int NUM_HEIGHT = 20;                // number of grid rows
+    public static final int NUM_WIDTH = 10;                 // number of grid columns
+    public static final int NUM_BLOCKSIZE = 80;             // scale of blocks on the grid
+    public static final int GAME_OFFSET = 10;               // offset in pixels for rendering borders
 
     // Game activity parameters
-    public static final int DELAY_NORMAL = 800;
-    public static final int DELAY_FAST = 100;
+    public static final int DELAY_NORMAL = 800;             // delay in ms during normal gameplay
+    public static final int DELAY_FAST = 100;               // delay in ms during swipe down action
+    public static final int SPRINT_NUMBER_OF_LINES = 40;    // number of lines to clear in sprint mode
+    public static final int MARATHON_TIME_LIMIT = 122;     // time limit in marathon mode + extra 2 seconds
+
     public static int delay = DELAY_NORMAL;
     private static int counter;
 
@@ -71,9 +77,11 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private ViewsHelper helper;
     private Handler handler;
     private Runnable loop;
+    private CountDownTimer timer;
 
     private boolean pauseInvoked;
     private boolean usedHold;
+    private boolean timerInitialized;
 
     // Layout components
     private ConstraintLayout clGridLayout;
@@ -92,18 +100,19 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     // Pause menu and Settings menu components
     private ConstraintLayout clOverlay;
-    private ConstraintLayout clPauseOverlay;
 
     private View pauseView;
     private View settingsView;
+    private View helpView;
 
     private Button btnResume;
     private Button btnSettings;
     private Button btnExit;
 
+    // Game mode components
     private GameMode mode;
     private int totalCleared;
-    private int countdown;
+    private long timeDurationInMs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +135,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         // Initialize a stack to choose the next tetrominoes from
         pieceBag = new ArrayList<Integer>();
 
+        // Instantiate the Tetromino to be dropped as empty
         holdTetromino = Shape.EMPTY_SHAPE;
 
         // Initialize and set the views to the layouts
@@ -136,6 +146,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         holdView = group.hv;
         nextView = group.nv;
 
+        // Set view to board, find res ids
         setContentView(R.layout.activity_board);
 
         clOverlay = findViewById(R.id.cl_board_overlay_container);
@@ -151,20 +162,26 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         clNextLayout.addView(nextView, 0);
 
         btnPause = findViewById(R.id.btn_board_pause);
+        btnHelp = findViewById(R.id.btn_board_help);
 
         // Sets the game mode and relevant factors
         tvScoreTitle = findViewById(R.id.tv_board_score);
         tvScoreValue = findViewById(R.id.tv_board_score_value);
         setGameMode();
 
+        // Listen for pause button events
+        pauseGame(btnPause);
+        pauseInvoked = false;
+
+        timerInitialized = false;
+
+        // Listen for help button events
+        showHelpScreen();
+
         // Start MusicService, plays the Tetris theme
         musicService = new MusicService(GameActivity.this);
         musicService.start();
 
-        // Listen for pause button events
-        pauseGame(btnPause);
-
-        pauseInvoked = false;
         startGame();
     }
 
@@ -185,7 +202,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             case MARATHON:
                 tvScoreTitle.setText(R.string.board_score_marathon);
                 tvScoreValue.setText("2:00");
-                countdown = 0;
+                timeDurationInMs = 0;
                 break;
             case ENDLESS:
                 tvScoreTitle.setText(R.string.board_score_endless);
@@ -207,7 +224,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      * Updates the displayed score for number of lines cleared
      */
     private void updateScore() {
-        int sprintScore = 40 - totalCleared;
+        int sprintScore = SPRINT_NUMBER_OF_LINES - totalCleared;
         switch(mode) {
             case SPRINT:
                 tvScoreValue.setText(formatScore(sprintScore));
@@ -328,6 +345,47 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public static void ResetCounter(){
         counter = 1;
     }
+
+    /**
+     * Initializes and starts a countdown timer.
+     * @param startTimeInMs The time that the timer will count down from, in miliseconds
+     */
+    private void startTimer(long startTimeInMs) {
+        timer = new CountDownTimer(startTimeInMs * 1000, 1000) {
+            @Override
+            public void onTick(long currentTimeInMs) {
+                String timestamp = String.format(Locale.getDefault(), "%02d:%02d",
+                    TimeUnit.MILLISECONDS.toMinutes(currentTimeInMs),
+                    TimeUnit.MILLISECONDS.toSeconds(currentTimeInMs) -
+                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentTimeInMs))
+                );
+
+                timeDurationInMs = currentTimeInMs;
+                tvScoreValue.setText(timestamp);
+            }
+
+            @Override
+            public void onFinish() {
+                if (totalCleared < 1) {
+                    gameState = GameState.END_LOSE;
+                } else {
+                    gameState = GameState.END_MARATHON;
+                }
+            }
+        };
+        timer.start();
+    }
+
+    /**
+     * Resumes the countdown timer by obtaining its last timestamp.
+     */
+    private void resumeTimer() { startTimer(timeDurationInMs / 1000); }
+
+    /**
+     * Stops the countdown timer.
+     */
+    private void pauseTimer() { timer.cancel(); }
+
     /*
         Game board modifiers
      */
@@ -336,7 +394,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      * Starts the main thread for the game's cycle
      */
     public void startGame(){
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
         handler = new Handler(Looper.getMainLooper());
         counter = 1;
         loop = new Runnable() {
@@ -344,14 +402,27 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             public void run() {
                 switch (gameState) {
                     case NEW:
+                        // Generate pieces to next
                         populatePieceBag();
                         populatePieceBag();
+
+                        // Set game state to spawn the Tetromino
                         gameState = GameState.SPAWN;
+
+                        // Initiate timer if marathon mode
+                        if (mode == GameMode.MARATHON && !timerInitialized) {
+                            timerInitialized = true;
+                            startTimer(MARATHON_TIME_LIMIT);
+                        }
+
                         delay = DELAY_FAST;
                         break;
 
                     case SPAWN:
+                        // Restore delay to normal
                         delay = DELAY_NORMAL;
+
+                        // Spawns a Tetromino and checks if its in a legal position
                         gameState = spawnTetromino() ? GameState.FALL : GameState.END_LOSE;
                         usedHold = false;
                         break;
@@ -377,10 +448,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                             // Check for possible end-game conditions after score updates
                             switch(mode) {
                                 case SPRINT:
-                                    if (totalCleared == 40) { gameState = GameState.END_WIN; }
+                                    if (totalCleared == SPRINT_NUMBER_OF_LINES) { gameState = GameState.END_WIN; }
                                     break;
                                 case MARATHON:
-                                    if (countdown == 0) { gameState = GameState.END_LOSE; }
+                                case ENDLESS:
                                     break;
                             }
                         }
@@ -388,10 +459,12 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
                     case END_WIN:
                     case END_LOSE:
+                        if (mode == GameMode.MARATHON) { pauseTimer(); }
                         setEndScreen(gameState);
                         break;
                 }
 
+                // Force the grid, hold, and next views to redraw
                 gridView.invalidate();
                 holdView.invalidate();
                 nextView.invalidate();
@@ -411,37 +484,110 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      */
     private void setEndScreen(GameState endState) {
         LayoutInflater inflater = GameActivity.this.getLayoutInflater();
-        Button exitBtn;
-        View view;
+        View view = inflater.inflate(R.layout.activity_end_screen, null);
 
-        if (endState == GameState.END_WIN) {
-            view = inflater.inflate(R.layout.activity_win, null);
-        } else {
-            view = inflater.inflate(R.layout.activity_lose, null);
+        setViewToInflateToLayout(view);
+        if (view.getParent() == null) {
+            handler.removeCallbacksAndMessages(null);
+            clOverlay.addView(view);
         }
 
-        switch (endState) {
-            case END_WIN:
-            case END_LOSE:
-                setViewToInflateToLayout(view);
-                if (view.getParent() == null) {
-                    handler.removeCallbacksAndMessages(null);
-                    clOverlay.addView(view);
-                }
-                if (endState == GameState.END_WIN) {
-                    exitBtn = view.findViewById(R.id.btn_win_back);
-                } else {
-                    exitBtn = view.findViewById(R.id.btn_lose_back);
-                }
+        ConstraintLayout clEnd = view.findViewById(R.id.cl_end);
+        TextView tvEndTitle = view.findViewById(R.id.tv_end_title);
+        TextView tvEndMessage = view.findViewById(R.id.tv_end_message);
+        Button btnEndExit = view.findViewById(R.id.btn_end_back);
 
-                if (view.getParent() != null) {
-                    exitBtn.setOnClickListener(v -> {
-                        Log.d("EXIT", "Clicked!");
-                        GameActivity.this.finish();
-                    });
-                }
+        String msg, linesClearedMsg = "You cleared " + totalCleared + " lines";
+
+        if (view.getParent() != null) {
+            switch (endState) {
+                case END_WIN:
+                    msg = "You won a game of Tetris!";
+                    setEndScreenColor(view, clEnd, R.color.win_background_color);
+                    setEndScreenText(view, tvEndTitle, R.string.win_title, tvEndMessage, msg);
+                    break;
+                case END_LOSE:
+                    msg = linesClearedMsg + ". Good luck next time!";
+                    setEndScreenColor(view, clEnd, R.color.lose_background_color);
+                    setEndScreenText(view, tvEndTitle, R.string.lose_title, tvEndMessage, msg);
+                    break;
+                case END_MARATHON:
+                    msg = linesClearedMsg + " in the given time!";
+                    setEndScreenColor(view, clEnd, R.color.win_background_color);
+                    setEndScreenText(view, tvEndTitle, R.string.timer_finished_title, tvEndMessage, msg);
+                    break;
+            }
+
+            if (view.getParent() != null) {
+                btnEndExit.setOnClickListener(v -> {
+                    GameActivity.this.finish();
+                });
+            }
+
+        }
+    }
+
+    /**
+     * Sets the end screen's background color according to game state
+     */
+    private void setEndScreenColor(View view, ConstraintLayout clEnd, int colorId) {
+        clEnd.setBackgroundColor(view.getResources().getColor(colorId));
+    }
+
+    /**
+     * Sets the end screen's title and message according to game state
+     */
+    private void setEndScreenText(View view, TextView tvEndTitle, int resIdTitle,
+                                  TextView tvEndMessage, String message) {
+        tvEndTitle.setText(resIdTitle);
+        tvEndMessage.setText(message);
+    }
+
+    /**
+     * Inflates and deflates the help screen
+     */
+    public void showHelpScreen() {
+        LayoutInflater inflater = GameActivity.this.getLayoutInflater();
+        View viewHelp = inflater.inflate(R.layout.activity_help, null);
+
+        setViewToInflateToLayout(viewHelp);
+        helpView = viewHelp;
+
+        btnHelp.setOnClickListener(v -> {
+            if (helpView.getParent() == null) {
+                pause();
+                clOverlay.addView(helpView);
+            }
+            if (pauseView.getParent() != null) { clOverlay.removeView(pauseView); }
+        });
+
+        TextView tvMode = helpView.findViewById(R.id.tv_help_mode);
+        TextView tvModeDesc = helpView.findViewById(R.id.tv_help_mode_desc);
+
+        // Set instructions accordingly
+        switch(mode) {
+            case SPRINT:
+                tvMode.setText(R.string.sprint_name);
+                tvModeDesc.setText(R.string.sprint_desc);
+                break;
+            case MARATHON:
+                tvMode.setText(R.string.marathon_name);
+                tvModeDesc.setText(R.string.marathon_desc);
+                break;
+            case ENDLESS:
+                tvMode.setText(R.string.endless_name);
+                tvModeDesc.setText(R.string.endless_desc);
                 break;
         }
+
+        // Listen for close button
+        Button btnHelpExit = helpView.findViewById(R.id.btn_help_exit);
+        btnHelpExit.setOnClickListener(v -> {
+            if (helpView.getParent() != null) {
+                clOverlay.removeView(helpView);
+                resumeGame(false);
+            }
+        });
     }
 
     /**
@@ -457,47 +603,64 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                 if (pauseView.getParent() == null) {
                     // Stops the thread
                     pauseInvoked = true;
+
+                    if (mode == GameMode.MARATHON) { pauseTimer(); }
+
                     handler.removeCallbacksAndMessages(null);
                     // Inflate pause menu
                     clOverlay.addView(pauseView);
                 }
 
-                clPauseOverlay = pauseView.findViewById(R.id.cl_pause_menu_overlay_container);
-                btnResume = pauseView.findViewById(R.id.btn_pause_resume);
-                btnSettings = pauseView.findViewById(R.id.btn_pause_settings);
-                btnExit = pauseView.findViewById(R.id.btn_pause_exit);
-
                 if (pauseView.getParent() != null) {
+                    btnResume = pauseView.findViewById(R.id.btn_pause_resume);
+                    btnSettings = pauseView.findViewById(R.id.btn_pause_settings);
+                    btnExit = pauseView.findViewById(R.id.btn_pause_exit);
+
                     btnResume.setOnClickListener(v -> {
-                        // Remove Settings view first
-                        if (settingsView.getParent() == null) {
-                            clPauseOverlay.removeView(settingsView);
-                        }
                         // Resume game
-                        if (pauseInvoked) { resumeGame(); }
+                        resumeGame(false);
                     });
+
                     btnSettings.setOnClickListener(v -> {
-                        if (settingsView.getParent() == null) {
-                            clPauseOverlay.addView(settingsView);
+                        // Remove pause menu first
+                        if (pauseView.getParent() != null) {
+                            clOverlay.removeView(pauseView);
                         }
-                        // Initialize SettingsService
-                        settingsService = new SettingsService(pauseView,GameActivity.this);
+                        // Open Settings view
+                        if (settingsView.getParent() == null) {
+                            clOverlay.addView(settingsView);
+
+                            // Initialize SettingsService
+                            settingsService = new SettingsService(settingsView, clOverlay, GameActivity.this);
+                        }
                     });
+
                     btnExit.setOnClickListener(v -> {
-                        Log.d("EXIT", "Clicked!");
                         GameActivity.this.finish();
                     });
+
+                    // Opens to pause menu when settings is closed
+                    if (settingsService != null) {
+                        if (settingsService.getIsInflated()) { clOverlay.addView(pauseView); }
+                    }
                 }
-                break;
         }
     }
 
     /**
      * Restarts the main thread of the game and closes the menu if present
      */
-    private void resumeGame() {
-        if (pauseView != null) { clPauseOverlay.removeView(pauseView); }
-        startGame();
+    private void resumeGame(boolean usePauseMenu) {
+        if (pauseInvoked) {
+            if (usePauseMenu) {
+                pauseGame(null);
+            } else {
+                pauseInvoked = false;
+                if (mode == GameMode.MARATHON && timerInitialized) { resumeTimer(); }
+                clOverlay.removeAllViews();
+                startGame();
+            }
+        }
     }
 
     /**
@@ -517,6 +680,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         } else {
             pause();
         }
+
         pauseView = viewPause;
         settingsView = viewSettings;
     }
@@ -668,11 +832,25 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     /**
      * Checks if the given row on the grid is filled up with blocks
      * @param row A row from the grid
-     * @return true if full, false if empty
+     * @return true if full, false if not full
      */
     public boolean checkRowForFull(int[] row){
-        for (int j : row) {
-            if (j == Shape.EMPTY_SHAPE.ordinal()) {
+        for (int i : row) {
+            if (i == Shape.EMPTY_SHAPE.ordinal()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks if the given row on the grid has no blocks
+     * @param row A row from the grid
+     * @return true if empty, false if not empty
+     */
+    public boolean checkRowForEmpty(int[] row){
+        for (int i : row) {
+            if (i != Shape.EMPTY_SHAPE.ordinal()) {
                 return false;
             }
         }
@@ -700,7 +878,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             int[][] new_block_data = new int[NUM_HEIGHT][NUM_WIDTH];
 
             for (int i = NUM_HEIGHT - 1; i > -1; i--){
-                if (!checkRowForFull(blockData[i])){
+                if (!checkRowForEmpty(blockData[i])){
                     new_block_data[cnt] = blockData[i];
                     cnt--;
                 }
@@ -750,7 +928,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     protected void onResume() {
         // Resume the running game
-        if (pauseInvoked) { resumeGame(); }
+        resumeGame(true);
         // Resume music
         if (musicService != null) { musicService.resume(); }
 

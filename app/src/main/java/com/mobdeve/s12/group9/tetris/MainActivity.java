@@ -20,7 +20,12 @@ public class MainActivity extends AppCompatActivity {
     // Main menu view components
     private ConstraintLayout clOverlay;
     private LinearLayout llModes;
+    private LinearLayout llMisc;
     private Button btnPlay;
+    private Button btnSprint;
+    private Button btnMarathon;
+    private Button btnEndless;
+    private Button btnBack;
     private ImageButton btnSettings;
     private ImageButton btnLeader;
 
@@ -46,7 +51,13 @@ public class MainActivity extends AppCompatActivity {
         this.btnSettings = findViewById(R.id.btn_menu_settings);
         this.btnLeader = findViewById(R.id.btn_menu_leaderboard);
 
+        this.btnSprint = findViewById(R.id.btn_play_sprint);
+        this.btnMarathon = findViewById(R.id.btn_play_marathon);
+        this.btnEndless = findViewById(R.id.btn_play_endless);
+        this.btnBack = findViewById(R.id.btn_play_back);
+
         this.llModes = findViewById(R.id.ll_menu_modes);
+        this.llMisc = findViewById(R.id.ll_menu_misc);
         this.clOverlay = findViewById(R.id.cl_menu_overlay_container);
 
         // Start MusicService, plays the Tetris theme
@@ -54,62 +65,96 @@ public class MainActivity extends AppCompatActivity {
         musicService.start();
 
         // Listen to menu buttons
-        bindToPlayButton();
-        settingsView = bindViewToButton(R.layout.activity_settings, R.id.btn_settings_exit, btnSettings);
-        leaderView = bindViewToButton(R.layout.activity_leaderboard, R.id.btn_leaderboard_exit, btnLeader);
-    }
-
-    // Binds the play button to launch the board activity
-    private void bindToPlayButton() {
-        btnPlay.setOnClickListener(v -> {
-            Intent i = new Intent(MainActivity.this, GameActivity.class);
-            i.putExtra(GameMode.class.getName(), GameMode.SPRINT.name());
-            startActivity(i);
-            /*
-            if (btnPlay.getVisibility() == View.VISIBLE) {
-                llModes.setVisibility(View.VISIBLE);
-                btnPlay.setVisibility(View.GONE);
-            }
-            */
-        });
+        bindMenuButtons();
     }
 
     /**
-     * Binds a given view to respective open and close buttons
-     * @param viewRes the View that will be opened/closed
-     * @param closeButtonRes Res to the Button to close the View
-     * @param openButton Res to the ImageButton to open the View
-     * @return Returns the view that was opened
+     * Listeners and inflaters for the play, settings, and leaderboard buttons
      */
-    private View bindViewToButton(int viewRes, int closeButtonRes, ImageButton openButton) {
+    private void bindMenuButtons() {
         LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-        View view = inflater.inflate(viewRes, null);
+        View viewLeader = inflater.inflate(R.layout.activity_leaderboard, null);
+        View viewSettings = inflater.inflate(R.layout.activity_settings, null);
 
-        view.setLayoutParams(new ConstraintLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT)
-        );
+        setViewToInflateToLayout(viewLeader);
+        setViewToInflateToLayout(viewSettings);
 
-        openButton.setOnClickListener(v -> {
-            if (view.getParent() == null) {
-                clOverlay.addView(view);
+        leaderView = viewLeader;
+        settingsView = viewSettings;
 
-                // Initialize SettingsService only when Settings is inflated
-                if (viewRes == R.layout.activity_settings) {
-                    settingsService = new SettingsService(view,MainActivity.this);
-                }
+        // Set up intent to GameActivity
+        Intent i = new Intent(MainActivity.this, GameActivity.class);
 
+        // Hides the play, settings, and leaderboard button to show the game modes
+        btnPlay.setOnClickListener(v -> { showGameModes(); });
+
+        // Opens the Settings view
+        btnSettings.setOnClickListener(v -> {
+            if (settingsView.getParent() == null) {
+                clOverlay.addView(settingsView);
+
+                // Initialize SettingsService
+                settingsService = new SettingsService(settingsView, clOverlay, MainActivity.this);
             }
         });
 
-        ImageButton closeButton = view.findViewById(closeButtonRes);
-
-        closeButton.setOnClickListener(v -> {
-            if (view.getParent() != null)
-                clOverlay.removeView(view);
+        // Opens the Leaderboard view
+        btnLeader.setOnClickListener(v -> {
+            if (leaderView.getParent() == null) {
+                clOverlay.addView(leaderView);
+            }
         });
 
-        return view;
+        // Opens the game in different game modes
+        btnSprint.setOnClickListener(v -> {
+            i.putExtra(GameMode.class.getName(), GameMode.SPRINT.name());
+            startActivity(i);
+            hideGameModes();
+        });
+
+        btnMarathon.setOnClickListener(v -> {
+            i.putExtra(GameMode.class.getName(), GameMode.MARATHON.name());
+            startActivity(i);
+            hideGameModes();
+        });
+
+        btnEndless.setOnClickListener(v -> {
+            i.putExtra(GameMode.class.getName(), GameMode.ENDLESS.name());
+            startActivity(i);
+            hideGameModes();
+        });
+
+        // Revert back to normal menu
+        btnBack.setOnClickListener(v -> { hideGameModes(); });
+    }
+
+    /**
+     * Hides the Play, Settings, and Leaderboard buttons to show the game mode buttons
+     */
+    private void showGameModes() {
+        btnPlay.setVisibility(View.GONE);
+        llMisc.setVisibility(View.GONE);
+        llModes.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hides the game mode buttons to show the standard menu buttons
+     */
+    private void hideGameModes() {
+        btnPlay.setVisibility(View.VISIBLE);
+        llMisc.setVisibility(View.VISIBLE);
+        llModes.setVisibility(View.GONE);
+    }
+
+    /**
+     * Sets a View's bounds to match that of a ConstraintLayout
+     * @param view A view that will be inflated onto a ConstraintLayout
+     */
+    private void setViewToInflateToLayout(View view) {
+        view.setLayoutParams(new ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT)
+        );
     }
 
     /**
