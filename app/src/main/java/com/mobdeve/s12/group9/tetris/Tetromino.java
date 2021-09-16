@@ -1,5 +1,8 @@
 package com.mobdeve.s12.group9.tetris;
 
+import android.icu.text.Transliterator;
+import android.util.Log;
+
 enum Shape {
     EMPTY_SHAPE,
     I_SHAPE,
@@ -135,6 +138,37 @@ public class Tetromino {
     }
 
 
+    //function to determine that if given a position and the coordinates of the block,
+    //if that said position is valid
+    public boolean LegitPosition(int position){
+        int curr_data[][] = GameActivity.getGameData();
+
+        //check all x data.
+
+        for (int i = 0; i < 4; i++){
+            if (dataX[position][i] > 9 || dataX[position][i] < 0 ){
+                return false;
+            }
+        }
+
+        //check all y data.
+
+        for (int i = 0; i < 4; i++){
+            if (dataY[position][i] > 19 || dataY[position][i] < 0){
+                return false;
+            }
+        }
+
+        //check if there is existing block.
+
+        for (int i = 0; i < 4; i++){
+            if(curr_data[dataY[position][i]][dataX[position][i]] != 0){
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 
 
@@ -152,31 +186,25 @@ public class Tetromino {
             switch(direction){
                 case DOWN:
                     addYOffset(1);
-                    for (int i = 0; i < 4; i++){
-                        if (dataY[pos][i] > 19 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
-                            addYOffset(-1);
-                            isMoving = false;
-                        }
+                    if (!LegitPosition(pos)){
+                        addYOffset(-1);
+                        isMoving = false;
                     }
                     break;
 
                 case RIGHT:
                     addXOffset(1);
-                    for (int i = 0; i < 4; i++){
-                        if (dataX[pos][i] > 9 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
-                            addXOffset(-1);
-                            isMoving = false;
-                        }
+                    if (!LegitPosition(pos)){
+                        addXOffset(-1);
+                        isMoving = false;
                     }
                     break;
 
                 case LEFT:
                     addXOffset(-1);
-                    for (int i = 0; i < 4; i++){
-                        if (dataX[pos][i] < 0 || currData[dataY[pos][i]][dataX[pos][i]] != 0){
-                            addXOffset(1);
-                            isMoving = false;
-                        }
+                    if (!LegitPosition(pos)){
+                        addXOffset(1);
+                        isMoving = false;
                     }
                     break;
             }
@@ -191,30 +219,27 @@ public class Tetromino {
 
 
 
-
-
-    //left is 90* acw, right is 90 cw
     public void Rotate(Rotation r){
+        //test value to check if rotation is successful.
         boolean success_rotation = false;
 
-        int curr_pos = pos;
-        int target_pos = pos;
+        //get target position
+        int target_pos = (r == Rotation.CLOCKWISE) ? (((pos + 1) % 4) + 4) % 4 : (((pos - 1) % 4) + 4) % 4;
 
+
+
+        //get derived offsets
         int derived_offset_data_x[] = new int[4];
         int derived_offset_data_y[] = new int[4];
 
-        int curr_data[][] = GameActivity.getGameData();
-        //erase the data in curr_data..
+        //save current data before rotating.
+        int curr_dataX[][] = getDataX();
+        int curr_dataY[][] = getDataY();
 
+        //erase the data in the current_data.
+        int curr_data[][] = GameActivity.getGameData();
         for (int i = 0; i < 4; i++){
             curr_data[dataY[pos][i]][dataX[pos][i]] = 0; //empty shape
-        }
-
-        if (r == Rotation.CLOCKWISE){
-            if (curr_pos == 3) { target_pos = 0; } else { target_pos++;}
-        }
-        else if (r == Rotation.ANTICLOCKWISE){
-            if (curr_pos == 0) { target_pos = 3; } else { target_pos--; };
         }
 
         switch (shape){
@@ -224,59 +249,50 @@ public class Tetromino {
             case Z_SHAPE:
             case T_SHAPE:
                 for (int i = 0; i < 4; i++){
-                    derived_offset_data_x[i] = OFFSET_DATA_JLSTZ_X[curr_pos][i] - OFFSET_DATA_JLSTZ_X[target_pos][i];
-                    derived_offset_data_y[i] = OFFSET_DATA_JLSTZ_Y[curr_pos][i] - OFFSET_DATA_JLSTZ_Y[target_pos][i];
+                    Log.d("Rotate", pos + " -> " + target_pos);
+                    derived_offset_data_x[i] = OFFSET_DATA_JLSTZ_X[pos][i] - OFFSET_DATA_JLSTZ_X[target_pos][i];
+                    derived_offset_data_y[i] = OFFSET_DATA_JLSTZ_Y[pos][i] - OFFSET_DATA_JLSTZ_Y[target_pos][i];
                 }
                 break;
             case I_SHAPE:
                 for (int i = 0; i < 4; i++){
-                    derived_offset_data_x[i] = OFFSET_DATA_I_X[curr_pos][i] - OFFSET_DATA_I_X[target_pos][i];
-                    derived_offset_data_y[i] = OFFSET_DATA_I_Y[curr_pos][i] - OFFSET_DATA_I_Y[target_pos][i];
+                    derived_offset_data_x[i] = OFFSET_DATA_I_X[pos][i] - OFFSET_DATA_I_X[target_pos][i];
+                    derived_offset_data_y[i] = OFFSET_DATA_I_Y[pos][i] - OFFSET_DATA_I_Y[target_pos][i];
                 }
                 break;
-            case O_SHAPE:
-                for (int i = 0; i < 4; i++){
-                    derived_offset_data_x[i] = OFFSET_DATA_O_X[curr_pos][i] - OFFSET_DATA_O_X[target_pos][i];
-                    derived_offset_data_y[i] = OFFSET_DATA_O_Y[curr_pos][i] - OFFSET_DATA_O_Y[target_pos][i];
-                }
-                break;
-
         }
 
+        //for each possible offset rotation...
+
         for (int i = 0; i < 5; i++){
-            //offset tetromino first.
+            //offset its data first,
             addYOffset(derived_offset_data_y[i]);
             addXOffset(derived_offset_data_x[i]);
 
-            //check legality of rotation.
-            if (
-                (dataY[target_pos][i] > 19 ||
-                dataX[target_pos][i] > 9 ||
-                dataX[target_pos][i] < 0 ||
-                curr_data[dataY[target_pos][i]][dataX[target_pos][i]] != 0)
-            ){
-                addXOffset(derived_offset_data_x[i] * -1);
-                addYOffset(derived_offset_data_y[i] * -1);
-            }
-            else {
+            //then check if the offset, with the new rotation value, is equal.
+            if(LegitPosition(target_pos)){
+                //exit the loop, and set the value of the success_rotation to true.
                 success_rotation = true;
                 break;
             }
+            else{
+                //change the x and y data to the one we started, then run the loop again.
+                setDataX(curr_dataX);
+                setDataY(curr_dataY);
+            }
         }
+
 
         if (success_rotation){
             pos = target_pos;
-            GameActivity.resetCounter();
-        }else{
-            pos = curr_pos;
         }
-
 
         for (int i = 0; i < 4; i++){
             curr_data[dataY[pos][i]][dataX[pos][i]] = shape.ordinal();
         }
 
     }
+
 
     public Tetromino(Shape shape) {
         this.pos = 0;
