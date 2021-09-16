@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tetris">
         <activity
-            android:name=".LeaderboardActivity"
+            android:name=".LeaderboardHolder"
             android:exported="true" />
         <activity android:name=".MainActivity">
             <intent-filter>

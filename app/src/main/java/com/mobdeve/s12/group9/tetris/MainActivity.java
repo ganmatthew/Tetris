@@ -2,6 +2,7 @@ package com.mobdeve.s12.group9.tetris;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.RecyclerView;
 
 
 import android.app.Activity;
@@ -37,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
     private MusicService musicService;
     private SettingsService settingsService;
+
+    private RecyclerView recyclerView;
+    private LeaderboardAdapter adapter;
 
     /***
      * Activity listeners
