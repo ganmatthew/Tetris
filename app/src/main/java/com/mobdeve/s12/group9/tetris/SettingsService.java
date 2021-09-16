@@ -78,6 +78,9 @@ public class SettingsService {
 
     public void closeSettings() {
         btnClose.setOnClickListener(v -> {
+            // Save any changes to Settings first
+            saveSettings();
+            // Close settings, update boolean
             clOverlay.removeView(settingsView);
             isViewInflated = false;
         });
@@ -85,6 +88,12 @@ public class SettingsService {
 
     // Changes the context of settings as it is passed from one activity to another
     public void setContext(Context context) { this.context = context; }
+
+    public boolean getMusicEnabled() { return this.sp.getBoolean( Keys.MUSIC_ENABLED.name(), this.musicSwitch.isChecked() ); }
+
+    public boolean getSoundEnabled() { return this.sp.getBoolean( Keys.SOUNDS_ENABLED.name(), this.soundsSwitch.isChecked() ); }
+
+    public float getSensitivity() { return this.sp.getFloat( Keys.TOUCH_SENSITIVITY.name(), this.touchSensSlider.getValue() ); }
 
     public boolean getIsInflated() { return this.isViewInflated; }
 }

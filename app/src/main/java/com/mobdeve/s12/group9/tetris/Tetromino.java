@@ -1,7 +1,5 @@
 package com.mobdeve.s12.group9.tetris;
 
-import java.util.stream.IntStream;
-
 enum Shape {
     EMPTY_SHAPE,
     I_SHAPE,
@@ -141,7 +139,7 @@ public class Tetromino {
 
 
 
-    public boolean MoveTetromino(Direction direction, boolean isMoving){
+    public boolean moveTetromino(Direction direction, boolean isMoving){
         if (!isMoving) {
             isMoving = true;
             int currData[][] = GameActivity.getGameData();
@@ -268,7 +266,7 @@ public class Tetromino {
 
         if (success_rotation){
             pos = target_pos;
-            GameActivity.ResetCounter();
+            GameActivity.resetCounter();
         }else{
             pos = curr_pos;
         }

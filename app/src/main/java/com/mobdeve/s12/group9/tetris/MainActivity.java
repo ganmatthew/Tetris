@@ -4,10 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 
+import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,12 +21,15 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout llModes;
     private LinearLayout llMisc;
     private Button btnPlay;
+    private Button btnContinue;
     private Button btnSprint;
     private Button btnMarathon;
     private Button btnEndless;
     private Button btnBack;
     private ImageButton btnSettings;
     private ImageButton btnLeader;
+
+    private boolean enableBtnContinue = false;
 
     // View components
     private View settingsView;
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.btnPlay = findViewById(R.id.btn_menu_play);
+        this.btnContinue = findViewById(R.id.btn_menu_continue);
         this.btnSettings = findViewById(R.id.btn_menu_settings);
         this.btnLeader = findViewById(R.id.btn_menu_leaderboard);
 
@@ -82,8 +85,23 @@ public class MainActivity extends AppCompatActivity {
         leaderView = viewLeader;
         settingsView = viewSettings;
 
+        // Initialize SettingsService
+        settingsService = new SettingsService(settingsView, clOverlay, MainActivity.this);
+
         // Set up intent to GameActivity
         Intent i = new Intent(MainActivity.this, GameActivity.class);
+
+        // Continue mode will prompt GameActivity to load the first entry from the database
+        if (enableBtnContinue) {
+            btnContinue.setVisibility(View.VISIBLE);
+            btnContinue.setOnClickListener(v -> {
+                i.putExtra(GameMode.class.getName(), GameMode.CONTINUE.name());
+                startActivityForResult(i, 1);
+                hideGameModes();
+            });
+        } else {
+            btnContinue.setVisibility(View.GONE);
+        }
 
         // Hides the play, settings, and leaderboard button to show the game modes
         btnPlay.setOnClickListener(v -> { showGameModes(); });
@@ -92,9 +110,6 @@ public class MainActivity extends AppCompatActivity {
         btnSettings.setOnClickListener(v -> {
             if (settingsView.getParent() == null) {
                 clOverlay.addView(settingsView);
-
-                // Initialize SettingsService
-                settingsService = new SettingsService(settingsView, clOverlay, MainActivity.this);
             }
         });
 
@@ -108,19 +123,19 @@ public class MainActivity extends AppCompatActivity {
         // Opens the game in different game modes
         btnSprint.setOnClickListener(v -> {
             i.putExtra(GameMode.class.getName(), GameMode.SPRINT.name());
-            startActivity(i);
+            startActivityForResult(i, 1);
             hideGameModes();
         });
 
         btnMarathon.setOnClickListener(v -> {
             i.putExtra(GameMode.class.getName(), GameMode.MARATHON.name());
-            startActivity(i);
+            startActivityForResult(i, 1);
             hideGameModes();
         });
 
         btnEndless.setOnClickListener(v -> {
             i.putExtra(GameMode.class.getName(), GameMode.ENDLESS.name());
-            startActivity(i);
+            startActivityForResult(i, 1);
             hideGameModes();
         });
 
@@ -171,6 +186,25 @@ public class MainActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             );
+        }
+    }
+
+    /**
+     * Recevies an intent from GameActivity indicating whether or not to enable the continue button
+     * @param requestCode Request code from the ActivityResult. Set to 1.
+     * @param resultCode Result code from the ActivityResult. Set to Activity.RESULT_OK.
+     * @param data The boolean intent that will be passed from GameActivity
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode) {
+            case 1: {
+                if (resultCode == Activity.RESULT_OK) {
+                    enableBtnContinue = data.getBooleanExtra("EnableContinue", false);
+                }
+                break;
+            }
         }
     }
 

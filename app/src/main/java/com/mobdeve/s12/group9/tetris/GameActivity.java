@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -39,7 +41,8 @@ enum GameState {
 enum GameMode {
     SPRINT,
     MARATHON,
-    ENDLESS
+    ENDLESS,
+    CONTINUE // only for loading data
 }
 
 public class GameActivity extends AppCompatActivity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
@@ -75,6 +78,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private DisplayMetrics displayMetrics;
     private GestureDetectorCompat mDetector;
     private ViewsHelper helper;
+    private DatabaseHandler database;
     private Handler handler;
     private Runnable loop;
     private CountDownTimer timer;
@@ -110,7 +114,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private Button btnExit;
 
     // Game mode components
-    private GameMode mode;
+    private GameMode gameMode;
     private int totalCleared;
     private long timeDurationInMs;
 
@@ -125,18 +129,6 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         // Set up gesture detection and listeners
         mDetector = new GestureDetectorCompat(this,this);
         mDetector.setOnDoubleTapListener(this);
-
-        // Initialize grid of given size
-        blockData = new int[NUM_HEIGHT][NUM_WIDTH];
-
-        // Set game state to starting
-        gameState = GameState.NEW;
-
-        // Initialize a stack to choose the next tetrominoes from
-        pieceBag = new ArrayList<Integer>();
-
-        // Instantiate the Tetromino to be dropped as empty
-        holdTetromino = Shape.EMPTY_SHAPE;
 
         // Initialize and set the views to the layouts
         helper = new ViewsHelper(GameActivity.this);
@@ -164,10 +156,12 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         btnPause = findViewById(R.id.btn_board_pause);
         btnHelp = findViewById(R.id.btn_board_help);
 
-        // Sets the game mode and relevant factors
         tvScoreTitle = findViewById(R.id.tv_board_score);
         tvScoreValue = findViewById(R.id.tv_board_score_value);
-        setGameMode();
+
+        // Creates new board data or loads from existing data
+        database = new DatabaseHandler(GameActivity.this);
+        loadBoardData();
 
         // Listen for pause button events
         pauseGame(btnPause);
@@ -175,12 +169,12 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         timerInitialized = false;
 
-        // Listen for help button events
-        showHelpScreen();
-
         // Start MusicService, plays the Tetris theme
         musicService = new MusicService(GameActivity.this);
         musicService.start();
+
+        // Listen for help button events
+        showHelpScreen();
 
         startGame();
     }
@@ -188,12 +182,17 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     /**
      * Sets the game mode based on the value passed by the intent.
      */
-    private void setGameMode() {
-        Bundle bundle = getIntent().getExtras();
-        String result = bundle.getString(GameMode.class.getName());
-        mode = GameMode.valueOf(result);
+    private void setGameMode(GameMode setMode) {
+        // Sets the game mode from the parameter if not null
+        if (setMode != null) {
+            gameMode = setMode;
+        } else { // Otherwise get the game mode from the passed intent
+            Bundle bundle = getIntent().getExtras();
+            String result = bundle.getString(GameMode.class.getName());
+            gameMode = GameMode.valueOf(result);
+        }
 
-        switch(mode) {
+        switch(gameMode) {
             case SPRINT:
                 tvScoreTitle.setText(R.string.board_score_sprint);
                 tvScoreValue.setText("40");
@@ -225,7 +224,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      */
     private void updateScore() {
         int sprintScore = SPRINT_NUMBER_OF_LINES - totalCleared;
-        switch(mode) {
+        switch(gameMode) {
             case SPRINT:
                 tvScoreValue.setText(formatScore(sprintScore));
                 break;
@@ -234,6 +233,67 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                 break;
         }
     }
+
+    /*
+        Creates new board data if there is no saved board data, otherwise loads it
+     */
+
+    /*
+    private int[][] board_grid;
+    private Shape board_hold;
+    private List<Integer> board_next;
+    private Tetromino board_falling;
+    private long board_timer;
+    private int board_cleared;
+    private GameMode board_mode;
+     */
+
+    private void loadBoardData() {
+        // Check if launched using continue button from main menu
+        if (gameMode != GameMode.CONTINUE) {
+            // Set game state to starting
+            gameState = GameState.NEW;
+
+            // Initialize grid of given size
+            blockData = new int[NUM_HEIGHT][NUM_WIDTH];
+
+            // Initialize a stack to choose the next tetrominoes from
+            pieceBag = new ArrayList<Integer>();
+
+            // Instantiate the Tetromino to be dropped as empty
+            holdTetromino = Shape.EMPTY_SHAPE;
+
+            // Set game mode via intent
+            setGameMode(null);
+        } else {
+            Board board = new Board(database.getBoard());
+
+            blockData = board.getGrid();
+            pieceBag = board.getNext();
+            holdTetromino = board.getHold();
+            fallingTetromino = board.getFalling();
+            timeDurationInMs = board.getTimer();
+            totalCleared = board.getTotalCleared();
+            gameState = board.getState();
+
+            // Set game mode via loaded data
+            setGameMode(board.getMode());
+        }
+    }
+
+    private void saveBoardData() {
+        Board board = new Board(
+            blockData, holdTetromino, pieceBag,
+            fallingTetromino, timeDurationInMs,
+            totalCleared, gameMode, gameState
+        );
+
+        if (database.getBoard() != null) {
+            database.deleteBoard();
+            database.addBoard(board.getObjectJSON());
+        }
+    }
+
 
     /*
         Button listeners
@@ -323,13 +383,13 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
             if (angle >= 135 && angle < 180 || angle < -135 && angle > -180) {
                 Log.d(GESTURE_TAG, "\nScroll LEFT, move Tetromino left\n");
-                fallingTetromino.MoveTetromino(Direction.LEFT, false);
+                fallingTetromino.moveTetromino(Direction.LEFT, false);
                 return true;
             }
 
             if (angle > -45 && angle <= 45) {
                 Log.d(GESTURE_TAG, "\nScroll RIGHT, move Tetromino right\n");
-                fallingTetromino.MoveTetromino(Direction.RIGHT, false);
+                fallingTetromino.moveTetromino(Direction.RIGHT, false);
                 return true;
             }
         }
@@ -342,7 +402,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) { return false; }
 
-    public static void ResetCounter(){
+    public static void resetCounter(){
         counter = 1;
     }
 
@@ -410,7 +470,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         gameState = GameState.SPAWN;
 
                         // Initiate timer if marathon mode
-                        if (mode == GameMode.MARATHON && !timerInitialized) {
+                        if (gameMode == GameMode.MARATHON && !timerInitialized) {
                             timerInitialized = true;
                             startTimer(MARATHON_TIME_LIMIT);
                         }
@@ -428,7 +488,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         break;
 
                     case FALL:
-                        if(!fallingTetromino.MoveTetromino(Direction.DOWN, false)) counter++;
+                        if(!fallingTetromino.moveTetromino(Direction.DOWN, false)) counter++;
 
                         if (counter > 2) {
                             // Resets the delay speed after the down gesture
@@ -446,7 +506,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                                 gameState = GameState.END_LOSE;
                             }
                             // Check for possible end-game conditions after score updates
-                            switch(mode) {
+                            switch(gameMode) {
                                 case SPRINT:
                                     if (totalCleared == SPRINT_NUMBER_OF_LINES) { gameState = GameState.END_WIN; }
                                     break;
@@ -459,7 +519,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
                     case END_WIN:
                     case END_LOSE:
-                        if (mode == GameMode.MARATHON) { pauseTimer(); }
+                        if (gameMode == GameMode.MARATHON) { pauseTimer(); }
                         setEndScreen(gameState);
                         break;
                 }
@@ -491,6 +551,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             handler.removeCallbacksAndMessages(null);
             clOverlay.addView(view);
         }
+
+        // Clear the board entry, as the game has finished
+        database.deleteBoard();
 
         ConstraintLayout clEnd = view.findViewById(R.id.cl_end);
         TextView tvEndTitle = view.findViewById(R.id.tv_end_title);
@@ -549,6 +612,13 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public void showHelpScreen() {
         LayoutInflater inflater = GameActivity.this.getLayoutInflater();
         View viewHelp = inflater.inflate(R.layout.activity_help, null);
+        View viewSettings = inflater.inflate(R.layout.activity_settings, null);
+
+        setViewToInflateToLayout(viewSettings);
+        settingsView = viewSettings;
+
+        // Initialize SettingsService
+        settingsService = new SettingsService(settingsView, clOverlay, GameActivity.this);
 
         setViewToInflateToLayout(viewHelp);
         helpView = viewHelp;
@@ -565,7 +635,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         TextView tvModeDesc = helpView.findViewById(R.id.tv_help_mode_desc);
 
         // Set instructions accordingly
-        switch(mode) {
+        switch(gameMode) {
             case SPRINT:
                 tvMode.setText(R.string.sprint_name);
                 tvModeDesc.setText(R.string.sprint_desc);
@@ -604,7 +674,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     // Stops the thread
                     pauseInvoked = true;
 
-                    if (mode == GameMode.MARATHON) { pauseTimer(); }
+                    if (gameMode == GameMode.MARATHON) { pauseTimer(); }
 
                     handler.removeCallbacksAndMessages(null);
                     // Inflate pause menu
@@ -629,19 +699,24 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                         // Open Settings view
                         if (settingsView.getParent() == null) {
                             clOverlay.addView(settingsView);
-
-                            // Initialize SettingsService
-                            settingsService = new SettingsService(settingsView, clOverlay, GameActivity.this);
                         }
                     });
 
                     btnExit.setOnClickListener(v -> {
+                        // Inform MainActivity that there is a saved game
+                        Intent i = new Intent();
+                        i.putExtra("ENABLE_CONTINUE_BUTTON", true);
+                        setResult(Activity.RESULT_OK, i);
+
                         GameActivity.this.finish();
                     });
 
                     // Opens to pause menu when settings is closed
                     if (settingsService != null) {
-                        if (settingsService.getIsInflated()) { clOverlay.addView(pauseView); }
+                        if (settingsService.getIsInflated()) {
+                            clOverlay.removeAllViews();
+                            clOverlay.addView(pauseView);
+                        }
                     }
                 }
         }
@@ -656,7 +731,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                 pauseGame(null);
             } else {
                 pauseInvoked = false;
-                if (mode == GameMode.MARATHON && timerInitialized) { resumeTimer(); }
+                if (gameMode == GameMode.MARATHON && timerInitialized) { resumeTimer(); }
                 clOverlay.removeAllViews();
                 startGame();
             }
@@ -670,10 +745,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     public void pauseGame(ImageButton button) {
         LayoutInflater inflater = GameActivity.this.getLayoutInflater();
         View viewPause = inflater.inflate(R.layout.activity_pause, null);
-        View viewSettings = inflater.inflate(R.layout.activity_settings, null);
 
         setViewToInflateToLayout(viewPause);
-        setViewToInflateToLayout(viewSettings);
 
         if (button != null) {
             button.setOnClickListener(v -> pause());
@@ -682,7 +755,9 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         }
 
         pauseView = viewPause;
-        settingsView = viewSettings;
+
+        // Save copy to database
+        saveBoardData();
     }
 
     /**

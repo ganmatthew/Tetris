@@ -173,6 +173,24 @@
         </LinearLayout>
 
         <Button
+            android:id="@+id/btn_menu_continue"
+            android:layout_width="wrap_content"
+            android:layout_height="80dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/button_play"
+            android:elevation="2dp"
+            android:fontFamily="@font/rubik_bold"
+            android:paddingLeft="36dp"
+            android:paddingRight="36dp"
+            android:text="@string/menu_continue"
+            android:textSize="28sp"
+            android:visibility="visible"
+            app:cornerRadius="50sp"
+            app:layout_constraintEnd_toEndOf="@+id/btn_menu_play"
+            app:layout_constraintStart_toStartOf="@+id/btn_menu_play"
+            app:layout_constraintTop_toBottomOf="@+id/btn_menu_play" />
+
+        <Button
             android:id="@+id/btn_menu_play"
             android:layout_width="wrap_content"
             android:layout_height="120dp"

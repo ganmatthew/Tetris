@@ -3,6 +3,7 @@
     <string name="app_name_caps">TETRIS</string>
 
     <string name="menu_play">Play</string>
+    <string name="menu_continue">Continue</string>
     <string name="menu_play_back">Back</string>
     <string name="menu_credits">By Matthew Gan and Jose Noblefranca</string>
 

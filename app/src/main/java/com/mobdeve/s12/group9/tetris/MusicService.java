@@ -3,6 +3,7 @@ package com.mobdeve.s12.group9.tetris;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.IOException;
@@ -10,6 +11,8 @@ import java.io.IOException;
 public class MusicService {
     // Debugging tags
     private static final String MUSIC_TAG = "Music";
+
+    private boolean musicEnabled;
 
     // Player components
     private MediaPlayer mPlayer;
@@ -22,6 +25,19 @@ public class MusicService {
     public MusicService(Context context) {
         this.context = context;
         mPlayer = MediaPlayer.create(context, musicStart);
+
+        musicEnabled = true;
+    }
+
+    public void setSettings(SettingsService settings) {
+        musicEnabled = settings.getMusicEnabled();
+
+        if (!musicEnabled) {
+            pause();
+        }
+        if (musicEnabled && !mPlayer.isPlaying()) {
+            resume();
+        }
     }
 
     public void start() {
@@ -78,7 +94,7 @@ public class MusicService {
 
     // Resumes any track in the MediaPlayer
     public void resume() {
-        if (!mPlayer.isPlaying()) {
+        if (!mPlayer.isPlaying() && musicEnabled) {
             // Continue where it left off
             mPlayer.seekTo(mPlayer.getCurrentPosition());
             mPlayer.start();
