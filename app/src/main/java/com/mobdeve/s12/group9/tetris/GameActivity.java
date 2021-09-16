@@ -21,7 +21,10 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -236,16 +239,6 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
     /*
         Creates new board data if there is no saved board data, otherwise loads it
-     */
-
-    /*
-    private int[][] board_grid;
-    private Shape board_hold;
-    private List<Integer> board_next;
-    private Tetromino board_falling;
-    private long board_timer;
-    private int board_cleared;
-    private GameMode board_mode;
      */
 
     private void loadBoardData() {
@@ -563,6 +556,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         String msg, linesClearedMsg = "You cleared " + totalCleared + " lines";
 
         if (view.getParent() != null) {
+            // Set end screen background color and message
             switch (endState) {
                 case END_WIN:
                     msg = "You won a game of Tetris!";
@@ -580,9 +574,16 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     setEndScreenText(view, tvEndTitle, R.string.timer_finished_title, tvEndMessage, msg);
                     break;
             }
+            // Save result to leaderboard in JSON format
+            LeaderboardEntry entry = new LeaderboardEntry("Player",
+                    totalCleared, timeDurationInMs, new Date(), gameMode);
+            String json = new Gson().toJson(entry);
 
+            // Listen for close button
             if (view.getParent() != null) {
                 btnEndExit.setOnClickListener(v -> {
+                    Intent i = new Intent();
+                    i.putExtra( IntentKeys.ADD_LEADERBOARD.name(), json );
                     GameActivity.this.finish();
                 });
             }
@@ -705,9 +706,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     btnExit.setOnClickListener(v -> {
                         // Inform MainActivity that there is a saved game
                         Intent i = new Intent();
-                        i.putExtra("ENABLE_CONTINUE_BUTTON", true);
-                        setResult(Activity.RESULT_OK, i);
-
+                        i.putExtra(IntentKeys.SAVED_GAME_PRESENT.name(), true);
                         GameActivity.this.finish();
                     });
 

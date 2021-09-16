@@ -17,6 +17,7 @@
     <string name="leaderboard_default_username">Player</string>
     <string name="leaderboard_default_score_value">58 min 02 sec</string>
     <string name="leaderboard_default_timestamp">09/04/2021 5:08 PM</string>
+    <string name="leaderboard_empty">The leaderboard is currently empty.</string>
 
     <string name="board_score_sprint">Lines Remaining</string>
     <string name="board_score_marathon">Time Remaining</string>

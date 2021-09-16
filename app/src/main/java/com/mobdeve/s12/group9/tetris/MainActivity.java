@@ -14,6 +14,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+
+enum IntentKeys {
+    SAVED_GAME_PRESENT,
+    ADD_LEADERBOARD
+}
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,8 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private MusicService musicService;
     private SettingsService settingsService;
 
-    private RecyclerView recyclerView;
-    private LeaderboardAdapter adapter;
+    private ImageButton btnLeaderExit;
+
+    private RecyclerView leaderRecyclerView;
+    private LeaderboardAdapter leaderAdapter;
+    private ArrayList<LeaderboardEntry> leaderData = new ArrayList<LeaderboardEntry>();
 
     /***
      * Activity listeners
@@ -89,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
         leaderView = viewLeader;
         settingsView = viewSettings;
 
+        btnLeaderExit = viewLeader.findViewById(R.id.btn_leaderboard_exit);
+
         // Initialize SettingsService
         settingsService = new SettingsService(settingsView, clOverlay, MainActivity.this);
 
@@ -121,6 +136,27 @@ public class MainActivity extends AppCompatActivity {
         btnLeader.setOnClickListener(v -> {
             if (leaderView.getParent() == null) {
                 clOverlay.addView(leaderView);
+
+                TextView tvLeaderEmpty = leaderView.findViewById(R.id.tv_leaderboard_empty);
+                leaderRecyclerView = leaderView.findViewById(R.id.rv_leaderboard);
+
+                if (!leaderData.isEmpty()) {
+                    tvLeaderEmpty.setVisibility(View.GONE);
+                    leaderAdapter = new LeaderboardAdapter(leaderData);
+                    leaderRecyclerView.setAdapter(leaderAdapter);
+
+                    leaderAdapter.notifyItemChanged(0);
+                    leaderAdapter.notifyItemRangeChanged(0, leaderAdapter.getItemCount());
+                } else {
+                    tvLeaderEmpty.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        // Closes the Leaderboard view
+        btnLeaderExit.setOnClickListener(v -> {
+            if (leaderView.getParent() != null) {
+                clOverlay.removeView(leaderView);
             }
         });
 
@@ -194,10 +230,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Recevies an intent from GameActivity indicating whether or not to enable the continue button
-     * @param requestCode Request code from the ActivityResult. Set to 1.
-     * @param resultCode Result code from the ActivityResult. Set to Activity.RESULT_OK.
-     * @param data The boolean intent that will be passed from GameActivity
+     * Recevies intents from other activities
+     * @param requestCode Request code from the ActivityResult.
+     * @param resultCode Result code from the ActivityResult.
+     * @param data Holds the intents that will be passed from GameActivity
      */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -205,7 +241,11 @@ public class MainActivity extends AppCompatActivity {
         switch(requestCode) {
             case 1: {
                 if (resultCode == Activity.RESULT_OK) {
-                    enableBtnContinue = data.getBooleanExtra("EnableContinue", false);
+                    // Indicates that there is a saved game to be continued
+                    enableBtnContinue = data.getBooleanExtra(IntentKeys.SAVED_GAME_PRESENT.name(), false);
+                    // Adds new entry to leaderboard
+                    String json = data.getStringExtra(IntentKeys.ADD_LEADERBOARD.name());
+                    leaderData.add( new Gson().fromJson(json, LeaderboardEntry.class) );
                 }
                 break;
             }
