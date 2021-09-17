@@ -8,6 +8,7 @@
     <string name="menu_credits">By Matthew Gan and Jose Noblefranca</string>
 
     <string name="settings_header">Settings</string>
+    <string name="settings_username">Set username</string>
     <string name="settings_music">Toggle music</string>
     <string name="settings_sounds">Toggle sounds</string>
     <string name="settings_sensitivity">Set touch sensitivity</string>

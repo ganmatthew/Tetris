@@ -34,26 +34,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/btn_leaderboard_exit"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginTop="36dp"
-            android:layout_marginEnd="32dp"
-            android:background="@drawable/rounded_button"
-            android:backgroundTint="@color/button_close"
-            android:scaleType="centerCrop"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/close_icon"
-            app:tint="@color/white" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_leaderboard"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="32dp"
             android:padding="10dp"
@@ -62,7 +48,21 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/btn_leaderboard_exit" />
+
+        <ImageButton
+            android:id="@+id/btn_leaderboard_exit"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="48dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/rounded_button"
+            android:backgroundTint="@color/button_close"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/close_icon"
+            app:tint="@color/white" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

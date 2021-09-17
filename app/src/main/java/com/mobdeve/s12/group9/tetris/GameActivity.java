@@ -3,8 +3,8 @@ package com.mobdeve.s12.group9.tetris;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.lifecycle.MutableLiveData;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -23,13 +23,12 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 enum GameState {
@@ -85,6 +84,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private Handler handler;
     private Runnable loop;
     private CountDownTimer timer;
+    private MutableLiveData<Boolean> inflatedListener;
 
     private boolean pauseInvoked;
     private boolean usedHold;
@@ -120,6 +120,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     private GameMode gameMode;
     private int totalCleared;
     private long timeDurationInMs;
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,8 +191,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         if (setMode != null) {
             gameMode = setMode;
         } else { // Otherwise get the game mode from the passed intent
-            Bundle bundle = getIntent().getExtras();
-            String result = bundle.getString(GameMode.class.getName());
+            String result = getIntent().getStringExtra(GameMode.class.getName());
             gameMode = GameMode.valueOf(result);
         }
 
@@ -256,10 +256,14 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
             // Instantiate the Tetromino to be dropped as empty
             holdTetromino = Shape.EMPTY_SHAPE;
 
+            // Set username via intent
+            username = getIntent().getStringExtra(IntentKeys.PLAYER_USERNAME.name());
+            Log.d("USERNAME", String.format("Username: %s", username));
+
             // Set game mode via intent
             setGameMode(null);
         } else {
-            Board board = new Board(database.getBoard());
+            Board board = new Board(database.getBoard(username));
 
             blockData = board.getGrid();
             pieceBag = board.getNext();
@@ -275,15 +279,15 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
     }
 
     private void saveBoardData() {
-        Board board = new Board(
+        Board board = new Board(username,
             blockData, holdTetromino, pieceBag,
             fallingTetromino, timeDurationInMs,
             totalCleared, gameMode, gameState
         );
 
-        if (database.getBoard() != null) {
-            database.deleteBoard();
-            database.addBoard(board.getObjectJSON());
+        if (database.getBoard(username) != null) {
+            database.deleteBoard(username);
+            database.addBoard(username, board.getObjectJSON());
         }
     }
 
@@ -447,7 +451,6 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
      * Starts the main thread for the game's cycle
      */
     public void startGame(){
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         handler = new Handler(Looper.getMainLooper());
         counter = 1;
         loop = new Runnable() {
@@ -513,6 +516,7 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     case END_WIN:
                     case END_LOSE:
                         if (gameMode == GameMode.MARATHON) { pauseTimer(); }
+                        handler.removeCallbacksAndMessages(null);
                         setEndScreen(gameState);
                         break;
                 }
@@ -540,13 +544,13 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
         View view = inflater.inflate(R.layout.activity_end_screen, null);
 
         setViewToInflateToLayout(view);
+
         if (view.getParent() == null) {
-            handler.removeCallbacksAndMessages(null);
             clOverlay.addView(view);
         }
 
         // Clear the board entry, as the game has finished
-        database.deleteBoard();
+        database.deleteBoard(username);
 
         ConstraintLayout clEnd = view.findViewById(R.id.cl_end);
         TextView tvEndTitle = view.findViewById(R.id.tv_end_title);
@@ -575,15 +579,21 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     break;
             }
             // Save result to leaderboard in JSON format
-            LeaderboardEntry entry = new LeaderboardEntry("Player",
-                    totalCleared, timeDurationInMs, new Date(), gameMode);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm aaa", Locale.getDefault());
+            String timestamp = dateFormat.format(new Date());
+
+            LeaderboardEntry entry = new LeaderboardEntry(username,
+                    totalCleared, timeDurationInMs, timestamp, gameMode);
             String json = new Gson().toJson(entry);
 
             // Listen for close button
             if (view.getParent() != null) {
                 btnEndExit.setOnClickListener(v -> {
-                    Intent i = new Intent();
-                    i.putExtra( IntentKeys.ADD_LEADERBOARD.name(), json );
+                    // Pass JSON of new leaderboard entry to MainActivity
+                    Intent j = new Intent(GameActivity.this, MainActivity.class);
+                    j.putExtra( IntentKeys.ADD_LEADERBOARD.name(), json );
+                    setResult(RESULT_OK, j);
+
                     GameActivity.this.finish();
                 });
             }
@@ -620,6 +630,13 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
         // Initialize SettingsService
         settingsService = new SettingsService(settingsView, clOverlay, GameActivity.this);
+
+        // Listen to changes to inflated settings view
+        inflatedListener = new MutableLiveData<Boolean>();
+        inflatedListener.postValue(settingsService.getIsInflated());
+        inflatedListener.observe(GameActivity.this, boolResult -> {
+            musicService.setSettings(settingsService);
+        });
 
         setViewToInflateToLayout(viewHelp);
         helpView = viewHelp;
@@ -676,8 +693,8 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
                     pauseInvoked = true;
 
                     if (gameMode == GameMode.MARATHON) { pauseTimer(); }
-
                     handler.removeCallbacksAndMessages(null);
+
                     // Inflate pause menu
                     clOverlay.addView(pauseView);
                 }
@@ -705,8 +722,10 @@ public class GameActivity extends AppCompatActivity implements GestureDetector.O
 
                     btnExit.setOnClickListener(v -> {
                         // Inform MainActivity that there is a saved game
-                        Intent i = new Intent();
-                        i.putExtra(IntentKeys.SAVED_GAME_PRESENT.name(), true);
+                        Intent j = new Intent();
+                        j.putExtra(IntentKeys.SAVED_GAME_PRESENT.name(), true);
+                        setResult(RESULT_OK, j);
+
                         GameActivity.this.finish();
                     });
 

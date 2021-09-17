@@ -6,6 +6,7 @@ import java.util.List;
 
 public class Board {
 
+    private String board_username;
     private int[][] board_grid;
     private Shape board_hold;
     private List<Integer> board_next;
@@ -15,8 +16,9 @@ public class Board {
     private GameMode board_mode;
     private GameState board_state;
 
-    public Board(int[][] grid, Shape hold, List<Integer> next, Tetromino falling,
+    public Board(String username, int[][] grid, Shape hold, List<Integer> next, Tetromino falling,
                  long timerInMs, int totalCleared, GameMode mode, GameState state) {
+        this.board_username = username;
         this.board_grid = grid;
         this.board_hold = hold;
         this.board_next = next;
@@ -29,7 +31,7 @@ public class Board {
 
     public Board(String json) {
         Board board = new Gson().fromJson(json, Board.class);
-
+        this.board_username = board.getUsername();
         this.board_grid = board.getGrid();
         this.board_hold = board.getHold();
         this.board_next = board.getNext();
@@ -43,6 +45,8 @@ public class Board {
     public String getObjectJSON() { return new Gson().toJson(Board.this); }
 
     // Get functions
+
+    public String getUsername() { return board_username; }
 
     public int[][] getGrid() {
         return board_grid;

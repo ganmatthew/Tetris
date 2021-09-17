@@ -1,6 +1,5 @@
 package com.mobdeve.s12.group9.tetris;
 
-import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -9,14 +8,14 @@ public class LeaderboardEntry {
     private String desc;
     private int totalCleared;
     private long timeRemaining;
-    private Date date;
+    private String timestamp;
     private GameMode mode;
 
-    public LeaderboardEntry(String username, int totalCleared, long timeRemaining, Date date, GameMode mode) {
+    public LeaderboardEntry(String username, int totalCleared, long timeRemaining, String timestamp, GameMode mode) {
         this.username = username;
         this.totalCleared = totalCleared;
         this.timeRemaining = timeRemaining;
-        this.date = date;
+        this.timestamp = timestamp;
         this.mode = mode;
     }
 
@@ -38,7 +37,7 @@ public class LeaderboardEntry {
     }
 
     public String getTimestamp() {
-        return date.toString();
+        return timestamp;
     }
 
     private String parseTimeRemaining(long timeInMs) {

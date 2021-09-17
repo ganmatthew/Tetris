@@ -18,9 +18,9 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardHolder> 
     @Override
     public LeaderboardHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        View itemView = layoutInflater.inflate(viewType, parent, false);
+        View view = layoutInflater.inflate(R.layout.item_leaderboard, parent, false);
 
-        LeaderboardHolder holder = new LeaderboardHolder(itemView);
+        LeaderboardHolder holder = new LeaderboardHolder(view);
         return holder;
     }
 

@@ -2,9 +2,11 @@ package com.mobdeve.s12.group9.tetris;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Observable;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Switch;
 
@@ -13,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.google.android.material.slider.Slider;
 
 enum Keys {
+    USERNAME,
     MUSIC_ENABLED,
     SOUNDS_ENABLED,
     TOUCH_SENSITIVITY
@@ -32,13 +35,14 @@ public class SettingsService {
 
     private View settingsView;
 
+    private EditText etUsername;
     private Switch musicSwitch;
-    private Switch soundsSwitch;
     private Slider touchSensSlider;
     private ImageButton btnClose;
     private ConstraintLayout clOverlay;
 
     private Context context;
+
     private boolean isViewInflated;
 
     public SettingsService(View view, ConstraintLayout layout, Context context) {
@@ -48,8 +52,8 @@ public class SettingsService {
 
         isViewInflated = true;
 
+        etUsername = view.findViewById(R.id.et_settings_username);
         musicSwitch = view.findViewById(R.id.sw_settings_music);
-        soundsSwitch = view.findViewById(R.id.sw_settings_sounds);
         touchSensSlider = view.findViewById(R.id.sl_settings_sensitivity);
         btnClose = view.findViewById(R.id.btn_settings_exit);
 
@@ -62,15 +66,15 @@ public class SettingsService {
 
     // Sets the settings parameters based on the loaded data
     public void loadSettings() {
+        this.etUsername.setText( this.sp.getString( Keys.USERNAME.name(), this.etUsername.getText().toString() ) );
         this.musicSwitch.setChecked( this.sp.getBoolean( Keys.MUSIC_ENABLED.name(), this.musicSwitch.isChecked() ) );
-        this.soundsSwitch.setChecked( this.sp.getBoolean( Keys.SOUNDS_ENABLED.name(), this.soundsSwitch.isChecked() ) );
         this.touchSensSlider.setValue( this.sp.getFloat( Keys.TOUCH_SENSITIVITY.name(), this.touchSensSlider.getValue() ) );
     }
 
     // Saves a backup of the data to SharedPreferences
     public void saveSettings() {
+        this.spEditor.putString( Keys.USERNAME.name(), this.etUsername.getText().toString() );
         this.spEditor.putBoolean( Keys.MUSIC_ENABLED.name(), this.musicSwitch.isChecked() );
-        this.spEditor.putBoolean( Keys.SOUNDS_ENABLED.name(), this.soundsSwitch.isChecked() );
         this.spEditor.putFloat( Keys.TOUCH_SENSITIVITY.name(), this.touchSensSlider.getValue() );
 
         this.spEditor.apply();
@@ -89,9 +93,9 @@ public class SettingsService {
     // Changes the context of settings as it is passed from one activity to another
     public void setContext(Context context) { this.context = context; }
 
-    public boolean getMusicEnabled() { return this.sp.getBoolean( Keys.MUSIC_ENABLED.name(), this.musicSwitch.isChecked() ); }
+    public String getUsername() { return this.sp.getString( Keys.USERNAME.name(), this.etUsername.getText().toString() ); }
 
-    public boolean getSoundEnabled() { return this.sp.getBoolean( Keys.SOUNDS_ENABLED.name(), this.soundsSwitch.isChecked() ); }
+    public boolean getMusicEnabled() { return this.sp.getBoolean( Keys.MUSIC_ENABLED.name(), this.musicSwitch.isChecked() ); }
 
     public float getSensitivity() { return this.sp.getFloat( Keys.TOUCH_SENSITIVITY.name(), this.touchSensSlider.getValue() ); }
 

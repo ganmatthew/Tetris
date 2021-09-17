@@ -31,13 +31,8 @@ public class MusicService {
 
     public void setSettings(SettingsService settings) {
         musicEnabled = settings.getMusicEnabled();
-
-        if (!musicEnabled) {
-            pause();
-        }
-        if (musicEnabled && !mPlayer.isPlaying()) {
-            resume();
-        }
+        float volume = musicEnabled ? 1 : 0;
+        mPlayer.setVolume(volume, volume);
     }
 
     public void start() {

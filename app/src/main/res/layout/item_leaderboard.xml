@@ -6,36 +6,19 @@
     android:layout_marginBottom="8dp"
     android:background="@color/leaderboard_item_color">
 
-    <TextView
-        android:id="@+id/tv_lead_item_rank"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="8dp"
-        android:layout_weight="0"
-        android:fontFamily="@font/rubik_mono_one"
-        android:gravity="center"
-        android:text="@string/leaderboard_default_rank"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="28sp"
-        android:textStyle="italic"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
         android:layout_marginTop="12dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="12dp"
         android:gravity="center_vertical"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/tv_lead_item_rank"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
@@ -67,7 +50,7 @@
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="@+id/tv_lead_item_username"
                 app:layout_constraintTop_toBottomOf="@+id/tv_lead_item_username" />
 
@@ -77,7 +60,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:fontFamily="@font/rubik_medium"
-                android:gravity="center_vertical"
+                android:gravity="center"
                 android:text="@string/leaderboard_default_timestamp"
                 android:textAlignment="textEnd"
                 android:textColor="@color/white"

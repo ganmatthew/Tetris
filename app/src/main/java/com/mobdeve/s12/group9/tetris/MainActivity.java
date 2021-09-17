@@ -1,7 +1,14 @@
 package com.mobdeve.s12.group9.tetris;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -19,8 +26,10 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Observable;
 
 enum IntentKeys {
+    PLAYER_USERNAME,
     SAVED_GAME_PRESENT,
     ADD_LEADERBOARD
 }
@@ -41,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton btnLeader;
 
     private boolean enableBtnContinue = false;
+    private MutableLiveData<Boolean> inflatedListener;
 
     // View components
     private View settingsView;
@@ -54,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView leaderRecyclerView;
     private LeaderboardAdapter leaderAdapter;
     private ArrayList<LeaderboardEntry> leaderData = new ArrayList<LeaderboardEntry>();
+    private String username = "Player";
+
+    public MainActivity() { }
 
     /***
      * Activity listeners
@@ -104,18 +117,28 @@ public class MainActivity extends AppCompatActivity {
 
         btnLeaderExit = viewLeader.findViewById(R.id.btn_leaderboard_exit);
 
-        // Initialize SettingsService
-        settingsService = new SettingsService(settingsView, clOverlay, MainActivity.this);
-
-        // Set up intent to GameActivity
+        // Set up new intent to GameActivity
         Intent i = new Intent(MainActivity.this, GameActivity.class);
 
-        // Continue mode will prompt GameActivity to load the first entry from the database
+        // Initialize SettingsService
+        settingsService = new SettingsService(settingsView, clOverlay, MainActivity.this);
+        i.putExtra(IntentKeys.PLAYER_USERNAME.name(), settingsService.getUsername());
+        musicService.setSettings(settingsService);
+
+        // Listen to changes to inflated settings view
+        inflatedListener = new MutableLiveData<Boolean>();
+        inflatedListener.postValue(settingsService.getIsInflated());
+        inflatedListener.observe(MainActivity.this, boolResult -> {
+            i.putExtra(IntentKeys.PLAYER_USERNAME.name(), settingsService.getUsername());
+            musicService.setSettings(settingsService);
+        });
+
+                // Continue mode will prompt GameActivity to load the first entry from the database
         if (enableBtnContinue) {
             btnContinue.setVisibility(View.VISIBLE);
             btnContinue.setOnClickListener(v -> {
                 i.putExtra(GameMode.class.getName(), GameMode.CONTINUE.name());
-                startActivityForResult(i, 1);
+                gameActivityResultLauncher.launch(i);
                 hideGameModes();
             });
         } else {
@@ -139,14 +162,14 @@ public class MainActivity extends AppCompatActivity {
 
                 TextView tvLeaderEmpty = leaderView.findViewById(R.id.tv_leaderboard_empty);
                 leaderRecyclerView = leaderView.findViewById(R.id.rv_leaderboard);
+                leaderRecyclerView.setLayoutManager(
+                    new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+                );
 
                 if (!leaderData.isEmpty()) {
                     tvLeaderEmpty.setVisibility(View.GONE);
                     leaderAdapter = new LeaderboardAdapter(leaderData);
                     leaderRecyclerView.setAdapter(leaderAdapter);
-
-                    leaderAdapter.notifyItemChanged(0);
-                    leaderAdapter.notifyItemRangeChanged(0, leaderAdapter.getItemCount());
                 } else {
                     tvLeaderEmpty.setVisibility(View.VISIBLE);
                 }
@@ -163,19 +186,19 @@ public class MainActivity extends AppCompatActivity {
         // Opens the game in different game modes
         btnSprint.setOnClickListener(v -> {
             i.putExtra(GameMode.class.getName(), GameMode.SPRINT.name());
-            startActivityForResult(i, 1);
+            gameActivityResultLauncher.launch(i);
             hideGameModes();
         });
 
         btnMarathon.setOnClickListener(v -> {
             i.putExtra(GameMode.class.getName(), GameMode.MARATHON.name());
-            startActivityForResult(i, 1);
+            gameActivityResultLauncher.launch(i);
             hideGameModes();
         });
 
         btnEndless.setOnClickListener(v -> {
             i.putExtra(GameMode.class.getName(), GameMode.ENDLESS.name());
-            startActivityForResult(i, 1);
+            gameActivityResultLauncher.launch(i);
             hideGameModes();
         });
 
@@ -230,27 +253,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Recevies intents from other activities
-     * @param requestCode Request code from the ActivityResult.
-     * @param resultCode Result code from the ActivityResult.
-     * @param data Holds the intents that will be passed from GameActivity
+     *  Called when GameActivity returns to MainActivity
      */
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode) {
-            case 1: {
-                if (resultCode == Activity.RESULT_OK) {
-                    // Indicates that there is a saved game to be continued
-                    enableBtnContinue = data.getBooleanExtra(IntentKeys.SAVED_GAME_PRESENT.name(), false);
+    ActivityResultLauncher<Intent> gameActivityResultLauncher = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(),
+        new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                Intent j = result.getData();
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    // Checks if a saved game exists
+                    enableBtnContinue = j.getBooleanExtra(IntentKeys.SAVED_GAME_PRESENT.name(), false);
+
                     // Adds new entry to leaderboard
-                    String json = data.getStringExtra(IntentKeys.ADD_LEADERBOARD.name());
-                    leaderData.add( new Gson().fromJson(json, LeaderboardEntry.class) );
+                    String json = j.getStringExtra(IntentKeys.ADD_LEADERBOARD.name());
+                    if (json != null) {
+                        leaderData.add( new Gson().fromJson(json, LeaderboardEntry.class) );
+                        if (leaderAdapter != null) {
+                            leaderAdapter.notifyItemChanged(0);
+                            leaderAdapter.notifyItemRangeChanged(0, leaderAdapter.getItemCount());
+                        }
+                    }
                 }
-                break;
             }
-        }
-    }
+        });
 
     /**
      * Overrides the back button to close the settings/leaderboard view
